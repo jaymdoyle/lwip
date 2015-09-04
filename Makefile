@@ -5,7 +5,7 @@ include $(PROJECT_ROOT)/make/leaf.cfg
 #### CONFIG ####################################################################
 #For debugging symbols add -DLWIP_DEBUG
 # COMPILER/LINKER
-CFLAGS+=-g -O2   \
+CFLAGS+=-g -O0   \
  -Wall
 
 # OUTPUT
