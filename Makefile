@@ -13,6 +13,8 @@ LWIP_EXEC=lwip
 
 #### PATHS #####################################################################
 
+BSP_PATH=/opt/rtems-4.11/arm-rtems4.11/stm32f7x/lib/include/bsp
+
 # LWIP
 LWIP_PATH=.
 LWIP_SRC_PATH=$(LWIP_PATH)/src
@@ -97,7 +99,7 @@ DRIVER_H=$(LWIPDRIVER_INCL_PATH)
 # HEADERS
 HEADERS=-I$(CORE_H) -I$(POSIX_H) -I$(POSIX_SYS_H) -I$(NETIF_H) \
         -I$(NETIF_H_PPP) -I$(NETIF_H_PPP_POLARSSL) -I$(ARCH_H) \
-        -I$(DRIVER_H) -I$(IPV4_H)
+        -I$(DRIVER_H) -I$(IPV4_H) -I$(BSP_PATH)
 
 
 ################################################################################
