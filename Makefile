@@ -40,7 +40,7 @@ CORE_SRC=$(wildcard $(LWIP_CORE_PATH)/*.c)
 IPV4_SRC=$(wildcard $(LWIP_CORE_PATH)/ipv4/*.c)
 
 ## IPv6
-IPV6_SRC=$(wildcard $(LWIP_CORE_PATH)/ipv6/*.c)
+#IPV6_SRC=$(wildcard $(LWIP_CORE_PATH)/ipv6/*.c)
 
 ## SNMP
 SNMP_SRC=$(wildcard $(LWIP_CORE_PATH)/snmp/*.c)
@@ -71,7 +71,7 @@ SOURCES =  $(DRIVER_SRC) $(SNMP_SRC)\
 CORE_H=$(LWIP_INCL_PATH)
 
 ## IPv4
-#IPV4_H=$(LWIP_INCL_PATH)/ipv4
+IPV4_H=$(LWIP_INCL_PATH)/ipv4
 
 ## IPv6
 #IPV6_H=$(LWIP_INCL_PATH)/ipv6
@@ -97,7 +97,7 @@ DRIVER_H=$(LWIPDRIVER_INCL_PATH)
 # HEADERS
 HEADERS=-I$(CORE_H) -I$(POSIX_H) -I$(POSIX_SYS_H) -I$(NETIF_H) \
         -I$(NETIF_H_PPP) -I$(NETIF_H_PPP_POLARSSL) -I$(ARCH_H) \
-        -I$(DRIVER_H)
+        -I$(DRIVER_H) -I$(IPV4_H)
 
 
 ################################################################################
