@@ -32,8 +32,6 @@
 #ifndef __CC_H__
 #define __CC_H__
 
-#include <sys/time.h>
-
 typedef unsigned    char    u8_t;
 typedef signed      char    s8_t;
 typedef unsigned    short   u16_t;
@@ -104,6 +102,8 @@ extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_
 #include <stdio.h>
 #include <stdlib.h>
 #include <bsp.h>
+//#include <sys/time.h>
+
 #define LWIP_PLATFORM_DIAG(x)   do { \
         printk("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
         printk x; \
