@@ -180,6 +180,9 @@
 
 #else
 
+#define LWIP_CACHE_ENABLED
+#define SOC_CACHELINE_SIZE_BYTES 32
+
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
  * critical regions during buffer allocation, deallocation and memory
