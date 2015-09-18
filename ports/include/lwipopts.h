@@ -180,6 +180,7 @@
 
 #else
 
+#define configMAX_PRIORITIES 100
 #define LWIP_CACHE_ENABLED
 #define SOC_CACHELINE_SIZE_BYTES 32
 #define LWIP_TIMEVAL_PRIVATE 0
@@ -287,7 +288,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- link callback options ---------- */
 /* LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
- * whenever the link changes (i.e., link down)
+ * whenever the link a48846deb25945d360543ffe8d86766d323b9859changes (i.e., link down)
  */
 #define LWIP_NETIF_LINK_CALLBACK        1
 
