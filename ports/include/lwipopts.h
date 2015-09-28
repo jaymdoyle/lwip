@@ -172,7 +172,7 @@
  * LWIP_COMPAT_SOCKETS==1: Enable BSD-style sockets functions names.
  * (only used if you use sockets.c)
  */
-#define LWIP_COMPAT_SOCKETS             0
+#define LWIP_COMPAT_SOCKETS             1
 
 #define LWIP_TIMEVAL_PRIVATE            0
 
