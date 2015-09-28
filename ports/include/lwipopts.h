@@ -51,8 +51,7 @@
 ** separate pool for each memory. The alignment of pbuf pool to cache line
 ** size is done in /ports/cpsw/include/arch/cc.h.
 */
-/*#define LWIP_CACHE_ENABLED*/
-
+#define LWIP_CACHE_ENABLED
 #define SOC_CACHELINE_SIZE_BYTES        32            /* Number of bytes in
                                                          a cache line */
 /*
@@ -87,16 +86,21 @@
 **                          Memory Options
 *****************************************************************************/
 #define MEM_ALIGNMENT                   4
-#define MEM_SIZE                        (256 * 1024) /* 128K */
+#define MEM_SIZE                        (512 * 1024) /* 256K */
 
 #define MEMP_NUM_PBUF                   96
 #define MEMP_NUM_TCP_PCB                32
 #define MEMP_NUM_TCP_SEG                32
+
+/* ---------- Pbuf options ---------- */
+/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
 #define PBUF_POOL_SIZE                  512
 
+/* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
+#define PBUF_POOL_BUFSIZE               1524
+
 #ifdef LWIP_CACHE_ENABLED
-#define MEMP_SEPARATE_POOLS             1            /* We want the pbuf
-                                                        pool cache line
+#define MEMP_SEPARATE_POOLS             1            /* We want the pbuf                                                        pool cache line
                                                         aligned*/
 #endif
 
@@ -166,8 +170,6 @@
 #define LWIP_STATS_DISPLAY              0
 #define LWIP_STATS_POSIX                0
 
-
-
 /**
  * LWIP_COMPAT_SOCKETS==1: Enable BSD-style sockets functions names.
  * (only used if you use sockets.c)
@@ -175,8 +177,9 @@
 #define LWIP_COMPAT_SOCKETS             1
 
 #define LWIP_TIMEVAL_PRIVATE            0
+#define LWIP_RAW                        0
 
- #define LWIP_RAW                       0
+#define configMAX_PRIORITIES            100
 
 #else
 
