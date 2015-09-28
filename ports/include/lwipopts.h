@@ -38,7 +38,7 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
-
+#define ORIGINAL_CONFIG_OPTIONS 1
 #if ORIGINAL_CONFIG_OPTIONS
 
 /*****************************************************************************
