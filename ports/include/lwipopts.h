@@ -53,7 +53,7 @@
 */
 /*#define LWIP_CACHE_ENABLED*/
 
-#define SOC_CACHELINE_SIZE_BYTES        64            /* Number of bytes in
+#define SOC_CACHELINE_SIZE_BYTES        32            /* Number of bytes in
                                                          a cache line */
 /*
 ** The timeout for DHCP completion. lwIP library will wait for DHCP
