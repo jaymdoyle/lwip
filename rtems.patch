@@ -1,7 +1,7 @@
 From 2d83d4994e578ec339b2b1baef53090bf7a53570 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Fri, 4 Sep 2015 17:28:55 -0400
-Subject: [PATCH 01/13] rtems changes necessary
+Subject: [PATCH 1/9] rtems changes necessary
 
 ---
  Makefile                      | 170 +++++++++++
@@ -1292,7 +1292,7 @@ index 0000000..360a4e2
 From d053fa836b445b6736bf82d33a33a59055150aa7 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Fri, 4 Sep 2015 17:30:37 -0400
-Subject: [PATCH 02/13] changed the compiler options
+Subject: [PATCH 2/9] changed the compiler options
 
 ---
  Makefile | 2 +-
@@ -1318,7 +1318,7 @@ index 0cbae64..94fcafc 100644
 From 841adb17430bdb9298dcb6d44ac5dad72e82af80 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 08:56:58 -0400
-Subject: [PATCH 03/13] disabled any mention of ipv6
+Subject: [PATCH 3/9] disabled any mention of ipv6
 
 ---
  Makefile | 6 +++---
@@ -1362,7 +1362,7 @@ index 94fcafc..6efa141 100644
 From a653d818348fef0130e6e497eecb0c3a35822df4 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 09:27:48 -0400
-Subject: [PATCH 04/13] added in stm32f low-level driver
+Subject: [PATCH 4/9] added in stm32f low-level driver
 
 ---
  src/netif/ethernetif.c | 709 ++++++++++++++++++++++++++++++-------------------
@@ -2150,7 +2150,7 @@ index 7982d11..82c85ae 100644
 From ab97b49d1d41e34fdfdfb457b397c768ee228c9f Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 09:39:20 -0400
-Subject: [PATCH 05/13] removed ethernetif (it should be in BSP
+Subject: [PATCH 5/9] removed ethernetif (it should be in BSP
 
 ---
  src/netif/ethernetif.c | 496 -------------------------------------------------
@@ -2666,7 +2666,7 @@ index 82c85ae..0000000
 From 31d34fab26b1e3fde99fe7288786725fe5e51b95 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 10:17:32 -0400
-Subject: [PATCH 06/13] add low level driver back
+Subject: [PATCH 6/9] add low level driver back
 
 ---
  src/netif/ethernetif.c | 496 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -3182,7 +3182,7 @@ index 0000000..bc429e9
 From 81eded01bb2bc35a9b627e5cf35b2021efb5972c Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 10:22:57 -0400
-Subject: [PATCH 07/13] Added bsp path
+Subject: [PATCH 7/9] Added bsp path
 
 ---
  Makefile | 4 +++-
@@ -3217,7 +3217,7 @@ index 6efa141..a855d9f 100644
 From f114529d5af1e2a83b49b67d631b10c02648e8d8 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
 Date: Mon, 7 Sep 2015 10:54:26 -0400
-Subject: [PATCH 08/13] removed ethernetif.c
+Subject: [PATCH 8/9] removed ethernetif.c
 
 ---
  src/netif/ethernetif.c | 496 -------------------------------------------------
@@ -3730,376 +3730,28 @@ index bc429e9..0000000
 1.9.1
 
 
-From 8f652ac0f1be0f2abc1493981763fc4c402bbfed Mon Sep 17 00:00:00 2001
+From badcd5771d8fa3046a2cd7aa07536c6dcb703891 Mon Sep 17 00:00:00 2001
 From: Jay Doyle <jay.doyle@vecna.com>
-Date: Wed, 16 Sep 2015 09:29:27 -0400
-Subject: [PATCH 09/13] using options from sample project
+Date: Mon, 28 Sep 2015 13:47:22 -0400
+Subject: [PATCH 9/9] enable BSD sockets naming
 
 ---
- ports/include/lwipopts.h | 207 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 207 insertions(+)
+ ports/include/lwipopts.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/ports/include/lwipopts.h b/ports/include/lwipopts.h
-index 169ba46..68d799b 100644
+index 169ba46..9149c29 100644
 --- a/ports/include/lwipopts.h
 +++ b/ports/include/lwipopts.h
-@@ -38,6 +38,9 @@
- #ifndef __LWIPOPTS_H__
- #define __LWIPOPTS_H__
+@@ -169,7 +169,7 @@
+  * LWIP_COMPAT_SOCKETS==1: Enable BSD-style sockets functions names.
+  * (only used if you use sockets.c)
+  */
+-#define LWIP_COMPAT_SOCKETS             0
++#define LWIP_COMPAT_SOCKETS             1
  
-+
-+#if ORIGINAL_CONFIG_OPTIONS
-+
- /*****************************************************************************
- **                           CONFIGURATIONS
- *****************************************************************************/
-@@ -175,4 +178,208 @@
+ #define LWIP_TIMEVAL_PRIVATE            0
  
-  #define LWIP_RAW                       0
- 
-+#else
-+
-+/**
-+ * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
-+ * critical regions during buffer allocation, deallocation and memory
-+ * allocation and deallocation.
-+ */
-+#define SYS_LIGHTWEIGHT_PROT    0
-+
-+#define ETHARP_TRUST_IP_MAC     0
-+#define IP_REASSEMBLY           0
-+#define IP_FRAG                 0
-+#define ARP_QUEUEING            0
-+#define TCP_LISTEN_BACKLOG      1
-+
-+/**
-+ * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
-+ * use lwIP facilities.
-+ */
-+#define NO_SYS                  0
-+
-+/* ---------- Memory options ---------- */
-+/* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
-+   lwIP is compiled. 4 byte alignment -> define MEM_ALIGNMENT to 4, 2
-+   byte alignment -> define MEM_ALIGNMENT to 2. */
-+#define MEM_ALIGNMENT           4
-+
-+/* MEM_SIZE: the size of the heap memory. If the application will send
-+a lot of data that needs to be copied, this should be set high. */
-+#define MEM_SIZE                (10*1024)
-+
-+/* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
-+   sends a lot of data out of ROM (or other static memory), this
-+   should be set high. */
-+#define MEMP_NUM_PBUF           50
-+/* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
-+   per active UDP "connection". */
-+#define MEMP_NUM_UDP_PCB        6
-+/* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
-+   connections. */
-+#define MEMP_NUM_TCP_PCB        10
-+/* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
-+   connections. */
-+#define MEMP_NUM_TCP_PCB_LISTEN 5
-+/* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
-+   segments. */
-+#define MEMP_NUM_TCP_SEG        12
-+/* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
-+   timeouts. */
-+#define MEMP_NUM_SYS_TIMEOUT    10
-+
-+
-+/* ---------- Pbuf options ---------- */
-+/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-+#define PBUF_POOL_SIZE          10
-+
-+/* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
-+#define PBUF_POOL_BUFSIZE       1524
-+
-+
-+/* ---------- TCP options ---------- */
-+#define LWIP_TCP                1
-+#define TCP_TTL                 255
-+
-+/* Controls if TCP should queue segments that arrive out of
-+   order. Define to 0 if your device is low on memory. */
-+#define TCP_QUEUE_OOSEQ         0
-+
-+/* TCP Maximum segment size. */
-+#define TCP_MSS                 (1500 - 40)   /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
-+
-+/* TCP sender buffer space (bytes). */
-+#define TCP_SND_BUF             (4*TCP_MSS)
-+
-+/*  TCP_SND_QUEUELEN: TCP sender buffer space (pbufs). This must be at least
-+  as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work. */
-+
-+#define TCP_SND_QUEUELEN        (2* TCP_SND_BUF/TCP_MSS)
-+
-+/* TCP receive window. */
-+#define TCP_WND                 (2*TCP_MSS)
-+
-+
-+/* ---------- ICMP options ---------- */
-+#define LWIP_ICMP                       1
-+
-+
-+/* ---------- DHCP options ---------- */
-+/* Define LWIP_DHCP to 1 if you want DHCP configuration of
-+   interfaces. DHCP is not implemented in lwIP 0.5.1, however, so
-+   turning this on does currently not work. */
-+#define LWIP_DHCP               1
-+
-+
-+/* ---------- UDP options ---------- */
-+#define LWIP_UDP                1
-+#define UDP_TTL                 255
-+
-+
-+/* ---------- Statistics options ---------- */
-+#define LWIP_STATS 0
-+#define LWIP_PROVIDE_ERRNO 1
-+
-+/* ---------- link callback options ---------- */
-+/* LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
-+ * whenever the link changes (i.e., link down)
-+ */
-+#define LWIP_NETIF_LINK_CALLBACK        1
-+
-+/*
-+   --------------------------------------
-+   ---------- Checksum options ----------
-+   --------------------------------------
-+*/
-+
-+/*
-+The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums by hardware:
-+ - To use this feature let the following define uncommented.
-+ - To disable it and process by CPU comment the  the checksum.
-+*/
-+#define CHECKSUM_BY_HARDWARE
-+
-+
-+#ifdef CHECKSUM_BY_HARDWARE
-+  /* CHECKSUM_GEN_IP==0: Generate checksums by hardware for outgoing IP packets.*/
-+  #define CHECKSUM_GEN_IP                 0
-+  /* CHECKSUM_GEN_UDP==0: Generate checksums by hardware for outgoing UDP packets.*/
-+  #define CHECKSUM_GEN_UDP                0
-+  /* CHECKSUM_GEN_TCP==0: Generate checksums by hardware for outgoing TCP packets.*/
-+  #define CHECKSUM_GEN_TCP                0
-+  /* CHECKSUM_CHECK_IP==0: Check checksums by hardware for incoming IP packets.*/
-+  #define CHECKSUM_CHECK_IP               0
-+  /* CHECKSUM_CHECK_UDP==0: Check checksums by hardware for incoming UDP packets.*/
-+  #define CHECKSUM_CHECK_UDP              0
-+  /* CHECKSUM_CHECK_TCP==0: Check checksums by hardware for incoming TCP packets.*/
-+  #define CHECKSUM_CHECK_TCP              0
-+  /* CHECKSUM_CHECK_ICMP==0: Check checksums by hardware for incoming ICMP packets.*/
-+  #define CHECKSUM_GEN_ICMP               0
-+#else
-+  /* CHECKSUM_GEN_IP==1: Generate checksums in software for outgoing IP packets.*/
-+  #define CHECKSUM_GEN_IP                 1
-+  /* CHECKSUM_GEN_UDP==1: Generate checksums in software for outgoing UDP packets.*/
-+  #define CHECKSUM_GEN_UDP                1
-+  /* CHECKSUM_GEN_TCP==1: Generate checksums in software for outgoing TCP packets.*/
-+  #define CHECKSUM_GEN_TCP                1
-+  /* CHECKSUM_CHECK_IP==1: Check checksums in software for incoming IP packets.*/
-+  #define CHECKSUM_CHECK_IP               1
-+  /* CHECKSUM_CHECK_UDP==1: Check checksums in software for incoming UDP packets.*/
-+  #define CHECKSUM_CHECK_UDP              1
-+  /* CHECKSUM_CHECK_TCP==1: Check checksums in software for incoming TCP packets.*/
-+  #define CHECKSUM_CHECK_TCP              1
-+  /* CHECKSUM_CHECK_ICMP==1: Check checksums by hardware for incoming ICMP packets.*/
-+  #define CHECKSUM_GEN_ICMP               1
-+#endif
-+
-+
-+/*
-+   ----------------------------------------------
-+   ---------- Sequential layer options ----------
-+   ----------------------------------------------
-+*/
-+/**
-+ * LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c)
-+ */
-+#define LWIP_NETCONN                    1
-+
-+/*
-+   ------------------------------------
-+   ---------- Socket options ----------
-+   ------------------------------------
-+*/
-+/**
-+ * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
-+ */
-+#define LWIP_SOCKET                     1
-+
-+/*
-+   -----------------------------------
-+   ---------- DEBUG options ----------
-+   -----------------------------------
-+*/
-+
-+#define LWIP_DEBUG                      0
-+
-+
-+/*
-+   ---------------------------------
-+   ---------- OS options ----------
-+   ---------------------------------
-+*/
-+
-+#define TCPIP_THREAD_NAME              "TCP/IP"
-+#define TCPIP_THREAD_STACKSIZE          1000
-+#define TCPIP_MBOX_SIZE                 5
-+#define DEFAULT_UDP_RECVMBOX_SIZE       2000
-+#define DEFAULT_TCP_RECVMBOX_SIZE       2000
-+#define DEFAULT_ACCEPTMBOX_SIZE         2000
-+#define DEFAULT_THREAD_STACKSIZE        500
-+#define TCPIP_THREAD_PRIO               (configMAX_PRIORITIES - 2)
-+#define LWIP_COMPAT_MUTEX               1
-+
-+
-+#endif
-+
- #endif /* __LWIPOPTS_H__ */
--- 
-1.9.1
-
-
-From d2624890161b1ec246cd224de8079157367a6346 Mon Sep 17 00:00:00 2001
-From: Jay Doyle <jay.doyle@vecna.com>
-Date: Wed, 16 Sep 2015 10:01:58 -0400
-Subject: [PATCH 10/13] added cache line configuration
-
----
- ports/include/lwipopts.h | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/ports/include/lwipopts.h b/ports/include/lwipopts.h
-index 68d799b..049d66d 100644
---- a/ports/include/lwipopts.h
-+++ b/ports/include/lwipopts.h
-@@ -180,6 +180,9 @@
- 
- #else
- 
-+#define LWIP_CACHE_ENABLED
-+#define SOC_CACHELINE_SIZE_BYTES 32
-+
- /**
-  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
-  * critical regions during buffer allocation, deallocation and memory
--- 
-1.9.1
-
-
-From 37e5b73c865357e530226ea2a2008aa355f58d55 Mon Sep 17 00:00:00 2001
-From: Jay Doyle <jay.doyle@vecna.com>
-Date: Wed, 16 Sep 2015 10:11:20 -0400
-Subject: [PATCH 11/13] configured for local time structure definition
-
----
- ports/include/arch/cc.h  | 2 ++
- ports/include/lwipopts.h | 1 +
- 2 files changed, 3 insertions(+)
-
-diff --git a/ports/include/arch/cc.h b/ports/include/arch/cc.h
-index 04ec89f..900e9b6 100644
---- a/ports/include/arch/cc.h
-+++ b/ports/include/arch/cc.h
-@@ -32,6 +32,8 @@
- #ifndef __CC_H__
- #define __CC_H__
- 
-+#include <sys/time.h>
-+
- typedef unsigned    char    u8_t;
- typedef signed      char    s8_t;
- typedef unsigned    short   u16_t;
-diff --git a/ports/include/lwipopts.h b/ports/include/lwipopts.h
-index 049d66d..05f5b52 100644
---- a/ports/include/lwipopts.h
-+++ b/ports/include/lwipopts.h
-@@ -182,6 +182,7 @@
- 
- #define LWIP_CACHE_ENABLED
- #define SOC_CACHELINE_SIZE_BYTES 32
-+#define LWIP_TIMEVAL_PRIVATE 0
- 
- /**
-  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
--- 
-1.9.1
-
-
-From 9a72a789d145f794b8a4c1084ed50597b71c6e2b Mon Sep 17 00:00:00 2001
-From: Jay Doyle <jay.doyle@vecna.com>
-Date: Wed, 16 Sep 2015 10:16:55 -0400
-Subject: [PATCH 12/13] remove include from cc.h
-
----
- ports/include/arch/cc.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/ports/include/arch/cc.h b/ports/include/arch/cc.h
-index 900e9b6..8eefd64 100644
---- a/ports/include/arch/cc.h
-+++ b/ports/include/arch/cc.h
-@@ -32,8 +32,6 @@
- #ifndef __CC_H__
- #define __CC_H__
- 
--#include <sys/time.h>
--
- typedef unsigned    char    u8_t;
- typedef signed      char    s8_t;
- typedef unsigned    short   u16_t;
-@@ -104,6 +102,8 @@ extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_
- #include <stdio.h>
- #include <stdlib.h>
- #include <bsp.h>
-+//#include <sys/time.h>
-+
- #define LWIP_PLATFORM_DIAG(x)   do { \
-         printk("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
-         printk x; \
--- 
-1.9.1
-
-
-From a48846deb25945d360543ffe8d86766d323b9859 Mon Sep 17 00:00:00 2001
-From: Jay Doyle <jay.doyle@vecna.com>
-Date: Fri, 18 Sep 2015 13:22:21 -0400
-Subject: [PATCH 13/13] turn off checksum checking by hardware
-
----
- ports/include/lwipopts.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/ports/include/lwipopts.h b/ports/include/lwipopts.h
-index 05f5b52..cf11793 100644
---- a/ports/include/lwipopts.h
-+++ b/ports/include/lwipopts.h
-@@ -243,8 +243,8 @@ a lot of data that needs to be copied, this should be set high. */
- 
- 
- /* ---------- TCP options ---------- */
--#define LWIP_TCP                1
--#define TCP_TTL                 255
-+//#define LWIP_TCP                1
-+//#define TCP_TTL                 255
- 
- /* Controls if TCP should queue segments that arrive out of
-    order. Define to 0 if your device is low on memory. */
-@@ -302,7 +302,7 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
-  - To use this feature let the following define uncommented.
-  - To disable it and process by CPU comment the  the checksum.
- */
--#define CHECKSUM_BY_HARDWARE
-+//#define CHECKSUM_BY_HARDWARE
- 
- 
- #ifdef CHECKSUM_BY_HARDWARE
 -- 
 1.9.1
 
