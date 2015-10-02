@@ -494,6 +494,10 @@ netconn_recv_data(struct netconn *conn, void **new_buf)
 err_t
 netconn_recv_tcp_pbuf(struct netconn *conn, struct pbuf **new_buf)
 {
+  if((conn == NULL) || (NETCONNTYPE_GROUP(netconn_type(conn)) != NETCONN_TCP)) {
+    return ERR_ARG;
+  }
+
   LWIP_ERROR("netconn_recv: invalid conn", (conn != NULL) &&
              NETCONNTYPE_GROUP(netconn_type(conn)) == NETCONN_TCP, return ERR_ARG;);
 
