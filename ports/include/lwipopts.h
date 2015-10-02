@@ -181,11 +181,6 @@
 
 #define configMAX_PRIORITIES            100
 
-// The following should be removed -- there just debugging tests
-#define MEMP_OVERFLOW_CHECK             2
-#define LWIP_DEBUG                      1
-#define MEMP_MEM_MALLOC                 1
-
 #else
 
 #define configMAX_PRIORITIES 100
