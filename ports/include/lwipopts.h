@@ -181,6 +181,8 @@
 
 #define configMAX_PRIORITIES            100
 
+#define MEMP_OVERFLOW_CHECK             2
+
 #else
 
 #define configMAX_PRIORITIES 100
