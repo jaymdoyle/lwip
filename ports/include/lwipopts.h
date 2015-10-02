@@ -182,6 +182,14 @@
 #define configMAX_PRIORITIES            100
 
 #define MEMP_OVERFLOW_CHECK             2
+/*
+   -----------------------------------
+   ---------- DEBUG options ----------
+   -----------------------------------
+*/
+
+#define LWIP_DEBUG                      1
+
 
 #else
 
