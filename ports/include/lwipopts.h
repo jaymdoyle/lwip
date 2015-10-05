@@ -93,11 +93,7 @@
 #define MEMP_NUM_TCP_SEG                32
 
 /* ---------- Pbuf options ---------- */
-/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE                  512
 
-/* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
-#define PBUF_POOL_BUFSIZE               1524
 
 #ifdef LWIP_CACHE_ENABLED
 #define MEMP_SEPARATE_POOLS             1            /* We want the pbuf                                                        pool cache line
@@ -136,9 +132,12 @@
 **                           PBUF  Options
 *****************************************************************************/
 #define PBUF_LINK_HLEN                  14
-#define PBUF_POOL_BUFSIZE               1520         /* + size of struct pbuf
-                                                        shall be cache line
-                                                        aligned be enabled */
+/* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
+#define PBUF_POOL_SIZE                  512
+
+/* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
+#define PBUF_POOL_BUFSIZE               1524
+
 #define ETH_PAD_SIZE                    0
 #define LWIP_NETCONN                    1
 
