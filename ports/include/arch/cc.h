@@ -47,7 +47,8 @@
 /* This file must either include a system-local <errno.h> which defines
    the standard *nix error codes, or it should #define LWIP_PROVIDE_ERRNO
    to make lwip/arch.h define the codes which are used throughout. */
-#undef LWIP_PROVIDE_ERRNO
+//#undef LWIP_PROVIDE_ERRNO
+#define LWIP_PROVIDE_ERRNO              1
 
 /* type definitions */
 typedef uint8_t             u8_t;
