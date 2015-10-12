@@ -42,7 +42,7 @@
 #include <rtems/rtems/clock.h>
 #include <rtems/rtems/sem.h>
 #include <rtems.h>
-#include "sys_arch.h"
+#include "arch/sys_arch.h"
 #include "lwip/err.h"
 #include "lwip/tcpip.h"
 #include "lwipopts.h"
