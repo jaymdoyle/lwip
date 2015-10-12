@@ -41,10 +41,9 @@
 #include "lwip/sys.h"
 #include "lwip/memp.h"
 #include "lwip/netif.h"
-#include "lwip/snmp.h"
+#include "lwip/snmp_mib2.h"
 #include "lwip/tcpip.h"
 #include "lwip/api.h"
-#include "lwip/sio.h"
 #include "lwip/ip4.h" /* for ip4_input() */
 
 #include "netif/ppp/ppp_impl.h"
@@ -62,7 +61,6 @@ static void pppos_disconnect(ppp_pcb *ppp, void *ctx);
 static err_t pppos_destroy(ppp_pcb *ppp, void *ctx);
 static void pppos_send_config(ppp_pcb *ppp, void *ctx, u32_t accm, int pcomp, int accomp);
 static void pppos_recv_config(ppp_pcb *ppp, void *ctx, u32_t accm, int pcomp, int accomp);
-static err_t pppos_ioctl(ppp_pcb *pcb, void *ctx, int cmd, void *arg);
 
 /* Prototypes for procedures local to this file. */
 #if PPP_INPROC_IRQ_SAFE
@@ -84,8 +82,7 @@ static const struct link_callbacks pppos_callbacks = {
   pppos_write,
   pppos_netif_output,
   pppos_send_config,
-  pppos_recv_config,
-  pppos_ioctl
+  pppos_recv_config
 };
 
 /* PPP's Asynchronous-Control-Character-Map.  The mask array is used
@@ -170,26 +167,25 @@ ppp_get_fcs(u8_t byte)
  *
  * Return 0 on success, an error code on failure.
  */
-ppp_pcb *pppos_create(struct netif *pppif, sio_fd_t fd,
+ppp_pcb *pppos_create(struct netif *pppif, pppos_output_cb_fn output_cb,
        ppp_link_status_cb_fn link_status_cb, void *ctx_cb)
 {
   pppos_pcb *pppos;
   ppp_pcb *ppp;
 
-  ppp = ppp_new(pppif, link_status_cb, ctx_cb);
-  if (ppp == NULL) {
+  pppos = (pppos_pcb *)memp_malloc(MEMP_PPPOS_PCB);
+  if (pppos == NULL) {
     return NULL;
   }
 
-  pppos = (pppos_pcb *)memp_malloc(MEMP_PPPOS_PCB);
-  if (pppos == NULL) {
-    ppp_free(ppp);
+  ppp = ppp_new(pppif, &pppos_callbacks, pppos, link_status_cb, ctx_cb);
+  if (ppp == NULL) {
+    memp_free(MEMP_PPPOS_PCB, pppos);
     return NULL;
   }
 
   pppos->ppp = ppp;
-  pppos->fd = fd;
-  ppp_link_set_callbacks(ppp, &pppos_callbacks, pppos);
+  pppos->output_cb = output_cb;
   return ppp;
 }
 
@@ -211,7 +207,7 @@ pppos_write(ppp_pcb *ppp, void *ctx, struct pbuf *p)
     PPPDEBUG(LOG_WARNING, ("pppos_write[%d]: alloc fail\n", ppp->netif->num));
     LINK_STATS_INC(link.memerr);
     LINK_STATS_INC(link.drop);
-    snmp_inc_ifoutdiscards(ppp->netif);
+    MIB2_STATS_NETIF_INC(ppp->netif, ifoutdiscards);
     pbuf_free(p);
     return ERR_MEM;
   }
@@ -257,7 +253,7 @@ pppos_netif_output(ppp_pcb *ppp, void *ctx, struct pbuf *pb, u16_t protocol)
     PPPDEBUG(LOG_WARNING, ("pppos_netif_output[%d]: alloc fail\n", ppp->netif->num));
     LINK_STATS_INC(link.memerr);
     LINK_STATS_INC(link.drop);
-    snmp_inc_ifoutdiscards(ppp->netif);
+    MIB2_STATS_NETIF_INC(ppp->netif, ifoutdiscards);
     return ERR_MEM;
   }
 
@@ -575,7 +571,7 @@ pppos_input(ppp_pcb *ppp, u8_t *s, int l)
             PPPDEBUG(LOG_ERR, ("pppos_input[%d]: tcpip_callback() failed, dropping packet\n", ppp->netif->num));
             pbuf_free(inp);
             LINK_STATS_INC(link.drop);
-            snmp_inc_ifindiscards(ppp->netif);
+            MIB2_STATS_NETIF_INC(ppp->netif, ifindiscards);
           }
 #else /* PPP_INPROC_IRQ_SAFE */
           ppp_input(ppp, inp);
@@ -736,7 +732,7 @@ static void pppos_input_callback(void *arg) {
 
 drop:
   LINK_STATS_INC(link.drop);
-  snmp_inc_ifindiscards(ppp->netif);
+  MIB2_STATS_NETIF_INC(ppp->netif, ifindiscards);
   pbuf_free(pb);
 }
 #endif /* PPP_INPROC_IRQ_SAFE */
@@ -783,27 +779,6 @@ pppos_recv_config(ppp_pcb *ppp, void *ctx, u32_t accm, int pcomp, int accomp)
             pppos->in_accm[0], pppos->in_accm[1], pppos->in_accm[2], pppos->in_accm[3]));
 }
 
-static err_t
-pppos_ioctl(ppp_pcb *pcb, void *ctx, int cmd, void *arg)
-{
-  pppos_pcb *pppos = (pppos_pcb *)ctx;
-  LWIP_UNUSED_ARG(pcb);
-
-  switch(cmd) {
-    case PPPCTLG_FD:            /* Get the fd associated with the ppp */
-      if (!arg) {
-        goto fail;
-      }
-      *(sio_fd_t *)arg = pppos->fd;
-      return ERR_OK;
-
-    default: ;
-  }
-
-fail:
-  return ERR_VAL;
-}
-
 /*
  * Drop the input packet.
  */
@@ -838,7 +813,7 @@ pppos_input_drop(pppos_pcb *pppos)
 #endif /* VJ_SUPPORT */
 
   LINK_STATS_INC(link.drop);
-  snmp_inc_ifindiscards(pppos->ppp->netif);
+  MIB2_STATS_NETIF_INC(pppos->ppp->netif, ifindiscards);
 }
 
 /*
@@ -858,7 +833,7 @@ pppos_output_append(pppos_pcb *pppos, err_t err, struct pbuf *nb, u8_t c, u8_t a
    * Sure we don't quite fill the buffer if the character doesn't
    * get escaped but is one character worth complicating this? */
   if ((PBUF_POOL_BUFSIZE - nb->len) < 2) {
-    u32_t l = sio_write(pppos->fd, (u8_t*)nb->payload, nb->len);
+    u32_t l = pppos->output_cb(pppos->ppp, (u8_t*)nb->payload, nb->len, pppos->ppp->ctx_cb);
     if (l != nb->len) {
       return ERR_IF;
     }
@@ -884,9 +859,7 @@ pppos_output_append(pppos_pcb *pppos, err_t err, struct pbuf *nb, u8_t c, u8_t a
 static err_t
 pppos_output_last(pppos_pcb *pppos, err_t err, struct pbuf *nb, u16_t *fcs)
 {
-#if LWIP_SNMP
   ppp_pcb *ppp = pppos->ppp;
-#endif /* LWIP_SNMP */
 
   /* Add FCS and trailing flag. */
   err = pppos_output_append(pppos, err,  nb, ~(*fcs) & 0xFF, 1, NULL);
@@ -899,7 +872,7 @@ pppos_output_last(pppos_pcb *pppos, err_t err, struct pbuf *nb, u16_t *fcs)
 
   /* Send remaining buffer if not empty */
   if (nb->len > 0) {
-    u32_t l = sio_write(pppos->fd, (u8_t*)nb->payload, nb->len);
+    u32_t l = pppos->output_cb(ppp, (u8_t*)nb->payload, nb->len, ppp->ctx_cb);
     if (l != nb->len) {
       err = ERR_IF;
       goto failed;
@@ -907,8 +880,8 @@ pppos_output_last(pppos_pcb *pppos, err_t err, struct pbuf *nb, u16_t *fcs)
   }
 
   pppos->last_xmit = sys_jiffies();
-  snmp_add_ifoutoctets(ppp->netif, nb->tot_len);
-  snmp_inc_ifoutucastpkts(ppp->netif);
+  MIB2_STATS_NETIF_ADD(ppp->netif, ifoutoctets, nb->tot_len);
+  MIB2_STATS_NETIF_INC(ppp->netif, ifoutucastpkts);
   LINK_STATS_INC(link.xmit);
   pbuf_free(nb);
   return ERR_OK;
@@ -917,7 +890,7 @@ failed:
   pppos->last_xmit = 0; /* prepend PPP_FLAG to next packet */
   LINK_STATS_INC(link.err);
   LINK_STATS_INC(link.drop);
-  snmp_inc_ifoutdiscards(ppp->netif);
+  MIB2_STATS_NETIF_INC(ppp->netif, ifoutdiscards);
   pbuf_free(nb);
   return err;
 }

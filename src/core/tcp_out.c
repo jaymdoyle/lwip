@@ -50,7 +50,6 @@
 #include "lwip/netif.h"
 #include "lwip/inet_chksum.h"
 #include "lwip/stats.h"
-#include "lwip/snmp.h"
 #include "lwip/ip6.h"
 #include "lwip/ip6_addr.h"
 #include "lwip/inet_chksum.h"
@@ -1136,7 +1135,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb)
   struct netif *netif;
 
   /** @bug Exclude retransmitted segments from this count. */
-  snmp_inc_tcpoutsegs();
+  MIB2_STATS_INC(mib2.tcpoutsegs);
 
   /* The TCP header has already been constructed, but the ackno and
    wnd fields remain. */
@@ -1262,7 +1261,6 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb)
 #endif /* TCP_CHECKSUM_ON_COPY */
   }
 #endif /* CHECKSUM_GEN_TCP */
-
   TCP_STATS_INC(tcp.xmit);
 
   NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
@@ -1323,7 +1321,7 @@ tcp_rst(u32_t seqno, u32_t ackno,
   tcphdr->urgp = 0;
 
   TCP_STATS_INC(tcp.xmit);
-  snmp_inc_tcpoutrsts();
+  MIB2_STATS_INC(mib2.tcpoutrsts);
 
   netif = ip_route(IP_IS_V6(remote_ip), local_ip, remote_ip);
   if (netif != NULL) {
@@ -1423,7 +1421,7 @@ tcp_rexmit(struct tcp_pcb *pcb)
   pcb->rttest = 0;
 
   /* Do the actual retransmission. */
-  snmp_inc_tcpretranssegs();
+  MIB2_STATS_INC(mib2.tcpretranssegs);
   /* No need to call tcp_output: we are always called from tcp_input()
      and thus tcp_output directly returns. */
 }

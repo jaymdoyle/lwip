@@ -24,63 +24,38 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * This file is system adaptation of the lwIP TCP/IP stack
- * by Adam Dunkels <adam@sics.se> for RTEMS system.
+ * This file is part of the lwIP TCP/IP stack.
  *
- * Author: Premysl Houdek <houdepre@fel.cvut.cz>
- * Mentor: Pavel Pisa <pisa@cmp.felk.cvut.cz>
- * Industrial Informatics Group, FEE, Czech Technical University in Prague
+ * Author: Adam Dunkels <adam@sics.se>
  *
- */
-/*
- * settings to adapt lwIP for compiler and machine architecture for RTEMS/GCC
- * DETAILS: ./lwip/doc/sys_arch.txt
  */
 #ifndef __CC_H__
 #define __CC_H__
 
-#include <stdio.h>
-#include <rtems/malloc.h>  /*printk*/
-#include <inttypes.h>
-#include <malloc.h>
+typedef unsigned    char    u8_t;
+typedef signed      char    s8_t;
+typedef unsigned    short   u16_t;
+typedef signed      short   s16_t;
+typedef unsigned    int    u32_t;
+typedef signed      int    s32_t;
+typedef u32_t           mem_ptr_t;
 
-/* This file must either include a system-local <errno.h> which defines
-   the standard *nix error codes, or it should #define LWIP_PROVIDE_ERRNO
-   to make lwip/arch.h define the codes which are used throughout. */
-//#undef LWIP_PROVIDE_ERRNO
-#define LWIP_PROVIDE_ERRNO              1
-
-/* type definitions */
-typedef uint8_t             u8_t;
-typedef int8_t              s8_t;
-typedef uint16_t            u16_t;
-typedef int16_t             s16_t;
-typedef uint32_t            u32_t;
-typedef int32_t             s32_t;
-typedef u32_t               mem_ptr_t;
-
-#define BYTE_ORDER BIG_ENDIAN
-
-/* Define (sn)printf formatters for these lwIP types */
-#define U16_F PRIu16
-#define S16_F PRId16
-#define X16_F PRIx16
-#define U32_F PRIu32
-#define S32_F PRId32
-#define X32_F PRIx32
+#ifndef BYTE_ORDER
+#define BYTE_ORDER LITTLE_ENDIAN
+#endif
 
 #if defined(__arm__) && defined(__ARMCC_VERSION)
-//
-// Setup PACKing macros for KEIL/RVMDK Tools
-//
+    //
+    // Setup PACKing macros for KEIL/RVMDK Tools
+    //
     #define PACK_STRUCT_BEGIN __packed
     #define PACK_STRUCT_STRUCT
     #define PACK_STRUCT_END
     #define PACK_STRUCT_FIELD(x) x
 #elif defined (__IAR_SYSTEMS_ICC__)
-//
-// Setup PACKing macros for IAR Tools
-//
+    //
+    // Setup PACKing macros for IAR Tools
+    //
     #define PACK_STRUCT_BEGIN
     #define PACK_STRUCT_STRUCT
     #define PACK_STRUCT_END
@@ -92,61 +67,59 @@ typedef u32_t               mem_ptr_t;
     #define PACK_STRUCT_END
     #define PACK_STRUCT_FIELD(x) x
 #else
-//
-// Setup PACKing macros for GCC Tools
-//
+    //
+    // Setup PACKing macros for GCC Tools
+    //
     #define PACK_STRUCT_BEGIN
     #define PACK_STRUCT_STRUCT __attribute__ ((__packed__))
     #define PACK_STRUCT_END
     #define PACK_STRUCT_FIELD(x) x
 #endif
 
-/*
- *     1 - load byte by byte, construct 16 bits word and add: not efficient for most platforms
- *     2 - load first byte if odd address, loop processing 16 bits words, add last byte.
- *     3 - load first byte and word if not 4 byte aligned, loop processing 32 bits words, add last word/byte.
- *
- *     see inet_chksum.c
+#ifdef LWIP_CACHE_ENABLED
+/**
+ * Make the PBUF POOL cacheline aligned.
  */
-#ifndef LWIP_CHKSUM_ALGORITHM
-#define LWIP_CHKSUM_ALGORITHM 2
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma data_alignment=SOC_CACHELINE_SIZE_BYTES
+extern u8_t memp_memory_PBUF_POOL_base[];
+#else /*By default, GCC */
+extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_SIZE_BYTES)));
+#endif
 #endif
 
-/* this is used for 1) displaying statistics and 2) lwip debugging (set appropriate debugging level in lwipopts.h) */
-//#ifdef LWIP_DEBUG
+extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_SIZE_BYTES)));
 
+/* Define (sn)printf formatters for these lwIP types */
+#define X8_F  "02x"
+#define U16_F "u"
+#define S16_F "d"
+#define X16_F "x"
+#define U32_F "u"
+#define S32_F "d"
+#define X32_F "x"
 
-#define LWIP_PLATFORM_DIAG(expr)        printk expr
+#include <stdio.h>
+#include <stdlib.h>
+#include <bsp.h>
+//#include <sys/time.h>
 
-//#else
-//#define LWIP_PLATFORM_DIAG(expr)
-//#endif
+#define LWIP_PLATFORM_DIAG(x)   do { \
+        printk("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
+        printk x; \
+    } while(0)
 
-//#define DEBUG
-#ifdef DEBUG
-
-/* for passing arguments to print function */
-#define CC_ASSERT(message, assertion) do { if (!(assertion)) \
-					     LWIP_PLATFORM_DIAG(message); } while (0)
-
-//extern void __error__(char *pcFilename, unsigned long ulLine);
-#define LWIP_PLATFORM_ASSERT(expr)      printk((const char *)expr)
-/*
-{                                       \
-    if(!(expr))                         \
-    {                                   \
-        __error__(__FILE__, __LINE__);  \
-    }                                   \
-}
-*/
+#ifdef LWIP_DEBUG  //DEBUG
+extern void __error__(char *pcFilename, unsigned long ulLine);
+#define LWIP_PLATFORM_ASSERT(expr)   printk("[%s - %s - %d] ", expr , __FILE__, __LINE__);
+//{
+    //if(!(expr))
+    //{
+        //__error__(__FILE__, __LINE__);
+    //}
+//}
 #else
 #define LWIP_PLATFORM_ASSERT(expr)
-#define CC_ASSERT(message, assertion)
-#endif /* DEBUG */
-
-/* "lightweight" synchronization mechanisms */
-/* #define SYS_ARCH_DECL_PROTECT(x) */ /* declare a protection state variable */
-/* #define SYS_ARCH_PROTECT(x) */ /* enter protection mode */
-/* #define SYS_ARCH_UNPROTECT(x) */ /* leave protection mode */
+#endif
 
 #endif /* __CC_H__ */

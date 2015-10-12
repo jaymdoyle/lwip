@@ -131,7 +131,7 @@
 *****************************************************************************/
 #define PBUF_LINK_HLEN                  14
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE                  512
+#define PBUF_POOL_SIZE                  96
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #define PBUF_POOL_BUFSIZE               1524
@@ -152,17 +152,17 @@
                                          |LWIP_DBG_STATE | LWIP_DBG_FRESH)
 #define DHCP_DEBUG                      LWIP_DBG_OFF
 #define NETIF_DEBUG                     LWIP_DBG_OFF
-#define IP_DEBUG			LWIP_DBG_OFF
-#define UDP_DEBUG			LWIP_DBG_OFF
+#define IP_DEBUG                        LWIP_DBG_OFF
+#define UDP_DEBUG                       LWIP_DBG_OFF
 #define ETHARP_DEBUG                    LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define RAW_DEBUG                       LWIP_DBG_OFF
 #define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
-#define PBUF_DEBUG			LWIP_DBG_OFF
-#define TCPIP_DEBUG			LWIP_DBG_OFF
-#define APP_DEBUG			LWIP_DBG_OFF
-#define SOCKETS_DEBUG		        LWIP_DBG_OFF
+#define PBUF_DEBUG                      LWIP_DBG_OFF
+#define TCPIP_DEBUG                     LWIP_DBG_OFF
+#define APP_DEBUG                       LWIP_DBG_OFF
+#define SOCKETS_DEBUG                   LWIP_DBG_OFF
 #define LWIP_STATS                      0
 #define LWIP_STATS_DISPLAY              0
 #define LWIP_STATS_POSIX                0
@@ -177,6 +177,9 @@
 #define LWIP_RAW                        0
 
 #define configMAX_PRIORITIES            100
-#define TCPIP_THREAD_PRIO               200
+#define TCPIP_THREAD_PRIO               20
+#define TCPIP_THREAD_STACKSIZE          8192
+#define TCPIP_MBOX_SIZE                 10
+#define SYS_LWIP_MBOX_SIZE              1500
 
 #endif /* __LWIPOPTS_H__ */

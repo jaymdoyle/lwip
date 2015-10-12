@@ -1423,7 +1423,7 @@ dns_gethostbyname(const char *hostname, ip_addr_t *addr, dns_found_callback foun
                   void *callback_arg)
 {
 #if LWIP_IPV4 && LWIP_IPV6
-  return dns_gethostbyname_addrtype(hostname, addr, found, callback_arg, LWIP_DNS_ADDRTYPE_IPV4_IPV6);
+  return dns_gethostbyname_addrtype(hostname, addr, found, callback_arg, LWIP_DNS_ADDRTYPE_DEFAULT);
 }
 
 /** Like dns_gethostbyname, but returned address type can be controlled:
@@ -1468,7 +1468,7 @@ dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_call
 #if LWIP_IPV4 && LWIP_IPV6
     if ((IP_IS_V6(addr) && (dns_addrtype != LWIP_DNS_ADDRTYPE_IPV4)) ||
        !(IP_IS_V6(addr) && (dns_addrtype != LWIP_DNS_ADDRTYPE_IPV6)))
-#endif LWIP_IPV4 && LWIP_IPV6
+#endif /* LWIP_IPV4 && LWIP_IPV6 */
     {
       return ERR_OK;
     }
@@ -1478,7 +1478,7 @@ dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_call
     return ERR_OK;
   }
 #if LWIP_IPV4 && LWIP_IPV6
-  if ((dns_addrtype == LWIP_DNS_ADDRTYPE_IPV4_IPV6) || (dns_addrtype == LWIP_DNS_ADDRTYPE_IPV4_IPV6)) {
+  if ((dns_addrtype == LWIP_DNS_ADDRTYPE_IPV4_IPV6) || (dns_addrtype == LWIP_DNS_ADDRTYPE_IPV6_IPV4)) {
     /* fallback to 2nd IP type and try again to lookup */
     u8_t fallback;
     if (dns_addrtype == LWIP_DNS_ADDRTYPE_IPV4_IPV6) {
@@ -1486,7 +1486,7 @@ dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_call
     } else {
       fallback = LWIP_DNS_ADDRTYPE_IPV4;
     }
-    if(dns_lookup(hostname, addr LWIP_DNS_ADDRTYPE_ARG(dns_addrtype)) == ERR_OK) {
+    if(dns_lookup(hostname, addr LWIP_DNS_ADDRTYPE_ARG(fallback)) == ERR_OK) {
       return ERR_OK;
     }
   }
@@ -1495,5 +1495,15 @@ dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_call
   /* queue query with specified callback */
   return dns_enqueue(hostname, hostnamelen, found, callback_arg LWIP_DNS_ADDRTYPE_ARG(dns_addrtype));
 }
+
+#if !LWIP_IPV4 || !LWIP_IPV6
+err_t
+dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_callback found,
+                           void *callback_arg, u8_t dns_addrtype)
+{
+  LWIP_UNUSED_ARG(dns_addrtype);
+  return dns_gethostbyname(hostname, addr, found, callback_arg);
+}
+#endif /* LWIP_IPV4 && LWIP_IPV6 */
 
 #endif /* LWIP_DNS */

@@ -80,9 +80,9 @@ static void mppe_rekey(ppp_mppe_state * state, int initial_key)
 	 */
 	sha1_starts(&sha1);
 	sha1_update(&sha1, state->master_key, state->keylen);
-	sha1_update(&sha1, (unsigned char *)mppe_sha1_pad1, SHA1_PAD_SIZE);
+	sha1_update(&sha1, mppe_sha1_pad1, SHA1_PAD_SIZE);
 	sha1_update(&sha1, state->session_key, state->keylen);
-	sha1_update(&sha1, (unsigned char *)mppe_sha1_pad2, SHA1_PAD_SIZE);
+	sha1_update(&sha1, mppe_sha1_pad2, SHA1_PAD_SIZE);
 	sha1_finish(&sha1, sha1_digest);
 	MEMCPY(state->session_key, sha1_digest, state->keylen);
 
@@ -201,6 +201,8 @@ mppe_compress(ppp_pcb *pcb, ppp_mppe_state *state, struct pbuf **pb, u16_t proto
 	struct pbuf *n, *np;
 	u8_t *pl;
 	err_t err;
+
+	LWIP_UNUSED_ARG(pcb);
 
 	/* TCP stack requires that we don't change the packet payload, therefore we copy
 	 * the whole packet before encryption.

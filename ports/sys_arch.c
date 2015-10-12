@@ -38,18 +38,20 @@
  */
 
 #include <stdint.h>
-#include <arch/cc.h>
 #include <rtems/rtems/clock.h>
 #include <rtems/rtems/sem.h>
 #include <rtems.h>
+#include "lwipopts.h"
 #include "arch/sys_arch.h"
 #include "lwip/err.h"
 #include "lwip/tcpip.h"
-#include "lwipopts.h"
+#include <arch/cc.h>
+
+int errno;
 
 #define SYS_LWIP_MBOX_SIZE (sizeof(void *))
 
-uint32_t
+u32_t
 sys_now()
 {
   uint64_t temp = rtems_clock_get_uptime_nanoseconds() / (1000 * 1000);
@@ -339,7 +341,7 @@ sys_arch_delay(unsigned int timeout)
 }
 
 /** Ticks/jiffies since power up. */
-uint32_t
+u32_t
 sys_jiffies(void)
 {
   return rtems_clock_get_ticks_since_boot();

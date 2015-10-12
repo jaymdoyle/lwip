@@ -151,8 +151,6 @@ struct link_callbacks {
   void (*send_config)(ppp_pcb *pcb, void *ctx, u32_t accm, int pcomp, int accomp);
   /* confire the receive-side characteristics of the PPP interface */
   void (*recv_config)(ppp_pcb *pcb, void *ctx, u32_t accm, int pcomp, int accomp);
-  /* Get and set parameters for the given connection. */
-  err_t (*ioctl)(ppp_pcb *pcb, void *ctx, int cmd, void *arg);
 };
 
 /*
@@ -290,7 +288,7 @@ struct protent {
     void (*close) (ppp_pcb *pcb, const char *reason);
 #if PRINTPKT_SUPPORT
     /* Print a packet in readable form */
-    int  (*printpkt) (u_char *pkt, int len,
+    int  (*printpkt) (const u_char *pkt, int len,
 			  void (*printer) (void *, const char *, ...),
 			  void *arg);
 #endif /* PRINTPKT_SUPPORT */
@@ -389,10 +387,8 @@ int ppp_init(void);
  */
 
 /* Create a new PPP control block */
-ppp_pcb *ppp_new(struct netif *pppif, ppp_link_status_cb_fn link_status_cb, void *ctx_cb);
-
-/* Set link callback functions */
-void ppp_link_set_callbacks(ppp_pcb *pcb, const struct link_callbacks *callbacks, void *ctx);
+ppp_pcb *ppp_new(struct netif *pppif, const struct link_callbacks *callbacks, void *link_ctx_cb,
+                 ppp_link_status_cb_fn link_status_cb, void *ctx_cb);
 
 /* Set a PPP PCB to its initial state */
 void ppp_clear(ppp_pcb *pcb);

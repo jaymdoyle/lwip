@@ -555,6 +555,10 @@ tcpip_trycallback(struct tcpip_callback_msg* msg)
 void
 tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 {
+#if (TCPIP_MBOX_SIZE == 0)
+#error "TCPIP_MBOX_SIZE  is zero"
+#endif
+
   lwip_init();
 
   tcpip_init_done = initfunc;
