@@ -102,22 +102,15 @@ extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_
 #include <stdio.h>
 #include <stdlib.h>
 #include <bsp.h>
-//#include <sys/time.h>
 
 #define LWIP_PLATFORM_DIAG(x)   do { \
-        printk("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
-        printk x; \
+        printf("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
+        printf x; \
     } while(0)
 
 #ifdef LWIP_DEBUG  //DEBUG
 extern void __error__(char *pcFilename, unsigned long ulLine);
-#define LWIP_PLATFORM_ASSERT(expr)   printk("[%s - %s - %d] ", expr , __FILE__, __LINE__);
-//{
-    //if(!(expr))
-    //{
-        //__error__(__FILE__, __LINE__);
-    //}
-//}
+#define LWIP_PLATFORM_ASSERT(expr)   printf("[%s - %s - %d] ", expr , __FILE__, __LINE__);
 #else
 #define LWIP_PLATFORM_ASSERT(expr)
 #endif
