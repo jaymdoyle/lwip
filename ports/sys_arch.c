@@ -274,8 +274,8 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stack_s
     rtems_build_name('L', 'W', 'I', 'P'),
     prio,
     stack_size,
-    RTEMS_PREEMPT,
-    0,
+    RTEMS_DEFAULT_MODES,
+    RTEMS_DEFAULT_ATTRIBUTES,
     &id
     );
 
