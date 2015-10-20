@@ -93,6 +93,7 @@
 /* ---------- Pbuf options ---------- */
 
 
+
 #ifdef LWIP_CACHE_ENABLED
 #define MEMP_SEPARATE_POOLS             1            /* We want the pbuf                                                        pool cache line
                                                         aligned*/
@@ -183,5 +184,9 @@
 #define SYS_LWIP_MBOX_SIZE              1500
 #define DEFAULT_TCP_RECVMBOX_SIZE       (sizeof(void *))
 #define DEFAULT_ACCEPTMBOX_SIZE         10
+#define TCPIP_THREAD_NAME               "TCP_"
+
+//TODO:Remove
+#define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 1
 
 #endif /* __LWIPOPTS_H__ */
