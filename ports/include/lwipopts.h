@@ -182,5 +182,6 @@
 #define TCPIP_MBOX_SIZE                 10
 #define SYS_LWIP_MBOX_SIZE              1500
 #define DEFAULT_TCP_RECVMBOX_SIZE       (sizeof(void *))
+#define DEFAULT_ACCEPTMBOX_SIZE         10
 
 #endif /* __LWIPOPTS_H__ */
