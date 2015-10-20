@@ -186,7 +186,5 @@
 #define DEFAULT_ACCEPTMBOX_SIZE         10
 #define TCPIP_THREAD_NAME               "TCP_"
 
-//TODO:Remove
-#define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 1
 
 #endif /* __LWIPOPTS_H__ */
