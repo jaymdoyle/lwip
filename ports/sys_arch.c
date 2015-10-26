@@ -298,9 +298,7 @@ sys_mutex_new(sys_mutex_t *mutex)
   rtems_status_code ret = rtems_semaphore_create(
     rtems_build_name('L', 'W', 'I', 'P'),
     1,
-//    RTEMS_PRIORITY|RTEMS_BINARY_SEMAPHORE|RTEMS_INHERIT_PRIORITY|RTEMS_LOCAL,
-    RTEMS_FIFO|RTEMS_BINARY_SEMAPHORE|RTEMS_INHERIT_PRIORITY|RTEMS_LOCAL,
-
+    RTEMS_PRIORITY|RTEMS_BINARY_SEMAPHORE|RTEMS_INHERIT_PRIORITY|RTEMS_LOCAL,
     0,
     &mutex->mutex
     );

@@ -164,6 +164,7 @@
 #define TCPIP_DEBUG                     LWIP_DBG_OFF
 #define APP_DEBUG                       LWIP_DBG_OFF
 #define SOCKETS_DEBUG                   LWIP_DBG_OFF
+#define TIMERS_DEBUG                    LWIP_DBG_ON
 #define LWIP_STATS                      0
 #define LWIP_STATS_DISPLAY              0
 #define LWIP_STATS_POSIX                0
