@@ -509,7 +509,7 @@ sys_timeouts_sleeptime(void)
 
 #else /* NO_SYS */
 
-static uint32_t max_timer_value = 10000UL;
+static uint32_t min_timer_value = 10000UL;
 
 /**
  * Wait (forever) for a message to arrive in an mbox.
