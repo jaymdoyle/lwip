@@ -359,9 +359,11 @@ sys_request_irq(unsigned int irqnum, sys_irq_handler_t handler,
 }
 
 sys_prot_t
-sys_arch_protect(void)
+sys_arch_protect(sys_prot_t dummy)
 {
-  return rtems_interrupt_disable();
+  sys_prot_t ret = rtems_interrupt_disable(dummy);
+
+  return ret;
 }
 
 void
