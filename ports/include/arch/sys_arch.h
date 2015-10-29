@@ -39,9 +39,9 @@
 #ifndef __ARCH_SYS_ARCH_H__
 #define __ARCH_SYS_ARCH_H__
 
+#include <rtems/rtems/intr.h>
 #include <errno.h>
 #include <rtems/rtems/sem.h>
-#include <rtems/rtems/intr.h>
 #include <bsp/irq-generic.h>
 
 /* Typedefs for the various port-specific types. */
