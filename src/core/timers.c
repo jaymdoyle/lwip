@@ -509,8 +509,6 @@ sys_timeouts_sleeptime(void)
 
 #else /* NO_SYS */
 
-static uint32_t min_timer_value = 10000UL;
-
 /**
  * Wait (forever) for a message to arrive in an mbox.
  * While waiting, timeouts are processed.
@@ -532,9 +530,6 @@ sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
   } else {
     if (next_timeout->time > 0) {
       time_needed = sys_arch_mbox_fetch(mbox, msg, next_timeout->time);
-
-      if(next_timeout->time < min_timer_value) max_timer_value = next_timeout->time;
-
     } else {
       time_needed = SYS_ARCH_TIMEOUT;
     }

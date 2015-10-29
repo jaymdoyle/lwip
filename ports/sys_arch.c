@@ -363,7 +363,7 @@ sys_arch_protect(void)
 {
   sys_prot_t pval;
 
-  pval = rtems_interrupt_disable(pval);
+  rtems_interrupt_disable(pval);
   return pval;
 }
 
