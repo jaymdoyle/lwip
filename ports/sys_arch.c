@@ -361,21 +361,11 @@ sys_request_irq(unsigned int irqnum, sys_irq_handler_t handler,
 sys_prot_t
 sys_arch_protect(void)
 {
-  sys_prot_t pval;
-
-  rtems_interrupt_disable(pval);
-  return pval;
+  return rtems_interrupt_disable();
 }
 
 void
 sys_arch_unprotect(sys_prot_t pval)
 {
-  static uint32_t debug_counter = 0UL;
-
-  // this should never be the case.
-  if (pval != 0) {
-    debug_counter++;
-  }
-
   rtems_interrupt_enable(pval);
 }
