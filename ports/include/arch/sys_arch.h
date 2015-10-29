@@ -112,6 +112,13 @@ sys_arch_protect(void)
 static inline void
 sys_arch_unprotect(sys_prot_t pval)
 {
+  static uint32_t debug_counter = 0UL;
+
+  // this should never be the case.
+  if (pval != 0) {
+    debug_counter++;
+  }
+
   rtems_interrupt_enable(pval);
 }
 
