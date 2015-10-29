@@ -358,16 +358,4 @@ sys_request_irq(unsigned int irqnum, sys_irq_handler_t handler,
   return (res != RTEMS_SUCCESSFUL) ? -1 : 0;
 }
 
-sys_prot_t
-sys_arch_protect(sys_prot_t pval)
-{
-  rtems_interrupt_disable(pval);
-
-  return pval;
-}
-
-void
-sys_arch_unprotect(sys_prot_t pval)
-{
-  rtems_interrupt_enable(pval);
-}
+uint32_t debug_counter = 0UL;

@@ -100,7 +100,7 @@ sys_arch_unmask_interrupt_source(unsigned int x)
   bsp_interrupt_vector_enable(x);
 }
 
-#if 0
+#if 1
 static inline sys_prot_t
 sys_arch_protect(void)
 {
@@ -110,14 +110,14 @@ sys_arch_protect(void)
   return pval;
 }
 
+extern uint32_t debug_counter = 0UL;
+
 static inline void
 sys_arch_unprotect(sys_prot_t pval)
 {
-  static uint32_t debug_counter = 0UL;
-
   // this should never be the case.
   if (pval != 0) {
-    debug_counter++;
+    debug_interrupt_enable_counter++;
   }
 
   rtems_interrupt_enable(pval);
