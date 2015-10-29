@@ -76,7 +76,8 @@
 /*****************************************************************************
 **                    Platform specific locking
 *****************************************************************************/
-#define SYS_LIGHTWEIGHT_PROT            1
+//DEBUG: Turn this back on!!!!
+#define SYS_LIGHTWEIGHT_PROT            0
 #define NO_SYS                          0
 #define NO_SYS_NO_TIMERS                0
 
