@@ -105,7 +105,7 @@ sys_arch_protect(void)
 {
   sys_prot_t pval;
 
-  rtems_interrupt_disable(pval);
+  pval = rtems_interrupt_disable();
   return pval;
 }
 
