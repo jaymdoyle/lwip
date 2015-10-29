@@ -100,6 +100,7 @@ sys_arch_unmask_interrupt_source(unsigned int x)
   bsp_interrupt_vector_enable(x);
 }
 
+#if 0
 static inline sys_prot_t
 sys_arch_protect(void)
 {
@@ -121,5 +122,6 @@ sys_arch_unprotect(sys_prot_t pval)
 
   rtems_interrupt_enable(pval);
 }
+#endif
 
 #endif /* __ARCH_SYS_ARCH_H__ */
