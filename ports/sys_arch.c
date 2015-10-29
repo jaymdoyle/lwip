@@ -358,4 +358,4 @@ sys_request_irq(unsigned int irqnum, sys_irq_handler_t handler,
   return (res != RTEMS_SUCCESSFUL) ? -1 : 0;
 }
 
-uint32_t debug_counter = 0UL;
+uint32_t debug_interrupt_enable_counter = 0UL;

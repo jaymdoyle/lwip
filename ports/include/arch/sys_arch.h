@@ -110,7 +110,7 @@ sys_arch_protect(void)
   return pval;
 }
 
-extern uint32_t debug_counter = 0UL;
+extern uint32_t debug_interrupt_enable_counter;
 
 static inline void
 sys_arch_unprotect(sys_prot_t pval)
