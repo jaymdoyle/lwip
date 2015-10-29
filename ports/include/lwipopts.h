@@ -76,8 +76,7 @@
 /*****************************************************************************
 **                    Platform specific locking
 *****************************************************************************/
-//DEBUG: Turn this back on!!!!
-#define SYS_LIGHTWEIGHT_PROT            0
+#define SYS_LIGHTWEIGHT_PROT            1
 #define NO_SYS                          0
 #define NO_SYS_NO_TIMERS                0
 
@@ -94,10 +93,8 @@
 /* ---------- Pbuf options ---------- */
 
 
-
 #ifdef LWIP_CACHE_ENABLED
-#define MEMP_SEPARATE_POOLS             1            /* We want the pbuf                                                        pool cache line
-                                                        aligned*/
+#define MEMP_SEPARATE_POOLS             1            /* We want the pbuf pool cache line aligned*/
 #endif
 
 #define MEMP_NUM_SYS_TIMEOUT (LWIP_TCP + IP_REASSEMBLY + LWIP_ARP + (2*LWIP_DHCP) + LWIP_AUTOIP + LWIP_IGMP + LWIP_DNS + PPP_SUPPORT)
