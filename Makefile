@@ -13,7 +13,7 @@ LWIP_EXEC=lwip
 
 #### PATHS #####################################################################
 
-BSP_PATH=/opt/rtems-4.11/arm-rtems4.11/stm32f7x/lib/include/bsp
+BSP_PATH=$(PROJECT_ROOT)/arm-rtems4.11/stm32f7x/lib/include/bsp
 
 # LWIP
 LWIP_PATH=.

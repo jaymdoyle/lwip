@@ -74,6 +74,7 @@ void
 sys_arch_delay(unsigned int x);
 void
 sys_sem_signal_from_ISR(sys_sem_t *sem);
+typedef rtems_interrupt_handler sys_irq_handler_t;
 
 #if 0
 typedef void sys_irqreturn_t;
@@ -81,7 +82,7 @@ typedef void sys_irqreturn_t;
 #define SYS_IRQ_NONE       ((void)0)
 #define SYS_IRQ_HANDLED    ((void)1)
 #define SYS_IRQ_RETVAL(x)  (IRQ_HANDLED)
-typedef rtems_interrupt_handler sys_irq_handler_t;
+
 #define SYS_IRQ_HANDLER_FNC(M_fnc_name)	\
   sys_irqreturn_t M_fnc_name(void *__irq_handler_context)
 
@@ -90,7 +91,6 @@ typedef rtems_interrupt_handler sys_irq_handler_t;
 int
 sys_request_irq(unsigned int irqnum, sys_irq_handler_t handler,
 		unsigned long flags, const char *name, void *context);
-
 
 static inline void
 sys_arch_mask_interrupt_source(unsigned int x)
