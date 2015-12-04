@@ -355,7 +355,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define DEFAULT_TCP_RECVMBOX_SIZE       2000
 #define DEFAULT_ACCEPTMBOX_SIZE         2000
 #define DEFAULT_THREAD_STACKSIZE        500
-#define TCPIP_THREAD_PRIO               (configMAX_PRIORITIES - 2)
+#define TCPIP_THREAD_PRIO               (100)
 #define LWIP_COMPAT_MUTEX               1
 
 #define LWIP_TIMEVAL_PRIVATE            0
