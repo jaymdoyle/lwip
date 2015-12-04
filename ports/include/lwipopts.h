@@ -347,7 +347,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_COMPAT_SOCKETS             1
 #define LWIP_RAW                        0
 
-#define LWIP_PROVIDE_ERRNO 1
+
 #define TCPIP_THREAD_NAME              "TCP/IP"
 #define TCPIP_THREAD_STACKSIZE          1000
 #define TCPIP_MBOX_SIZE                 5
@@ -359,6 +359,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_COMPAT_MUTEX               1
 
 #define LWIP_TIMEVAL_PRIVATE            0
+#define LWIP_PROVIDE_ERRNO              0
 #endif
 
 
