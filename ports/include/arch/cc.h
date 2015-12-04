@@ -101,7 +101,7 @@ extern u8_t memp_memory_PBUF_POOL_base[] __attribute__ ((aligned (SOC_CACHELINE_
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <bsp.h>
+//#include <bsp.h>
 
 #define LWIP_PLATFORM_DIAG(x)   do { \
         printf("[%s - %s - %d] ", __PRETTY_FUNCTION__, __FILE__, __LINE__); \
