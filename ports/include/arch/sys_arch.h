@@ -40,7 +40,7 @@
 #define __ARCH_SYS_ARCH_H__
 
 #include <rtems/rtems/intr.h>
-#include <errno.h>
+//#include <errno.h>
 #include <rtems/rtems/sem.h>
 #include <bsp/irq-generic.h>
 
