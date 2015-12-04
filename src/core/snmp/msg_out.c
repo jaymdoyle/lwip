@@ -49,16 +49,8 @@
 #include "lwip/udp.h"
 #include "lwip/netif.h"
 #include "lwip/snmp.h"
-#include "lwip/snmp_mib2.h"
 #include "lwip/snmp_asn1.h"
 #include "lwip/snmp_msg.h"
-#include "lwip/sys.h"
-
-#include <string.h>
-
-#if !SNMP_COMMUNITY_EXT
-#define snmp_community_trap snmp_community
-#endif
 
 struct snmp_trap_dst
 {
@@ -157,27 +149,21 @@ snmp_send_response(struct snmp_msg_pstat *m_stat)
 
     switch (m_stat->error_status)
     {
-      case SNMP_ES_NOERROR:
-        /* nothing to do */
-        break;
       case SNMP_ES_TOOBIG:
-        mib2_inc_snmpouttoobigs();
+        snmp_inc_snmpouttoobigs();
         break;
       case SNMP_ES_NOSUCHNAME:
-        mib2_inc_snmpoutnosuchnames();
+        snmp_inc_snmpoutnosuchnames();
         break;
       case SNMP_ES_BADVALUE:
-        mib2_inc_snmpoutbadvalues();
+        snmp_inc_snmpoutbadvalues();
         break;
       case SNMP_ES_GENERROR:
-        mib2_inc_snmpoutgenerrs();
-        break;
-      default:
-        LWIP_DEBUGF(SNMP_MSG_DEBUG, ("snmp_send_response(): unknown error_status: %d\n", (int)m_stat->error_status));
+        snmp_inc_snmpoutgenerrs();
         break;
     }
-    mib2_inc_snmpoutgetresponses();
-    mib2_inc_snmpoutpkts();
+    snmp_inc_snmpoutgetresponses();
+    snmp_inc_snmpoutpkts();
 
     /** @todo do we need separate rx and tx pcbs for threaded case? */
     /** connect to the originating source */
@@ -217,24 +203,20 @@ snmp_send_response(struct snmp_msg_pstat *m_stat)
  * @return ERR_OK when success, ERR_MEM if we're out of memory
  *
  * @note the caller is responsible for filling in outvb in the trap_msg
- * @note the use of the enterprise identifier field
+ * @note the use of the enterpise identifier field
  * is per RFC1215.
  * Use .iso.org.dod.internet.mgmt.mib-2.snmp for generic traps
  * and .iso.org.dod.internet.private.enterprises.yourenterprise
  * (sysObjectID) for specific traps.
  */
 err_t
-snmp_send_trap(s8_t generic_trap, const struct snmp_obj_id *eoid, s32_t specific_trap)
+snmp_send_trap(s8_t generic_trap, struct snmp_obj_id *eoid, s32_t specific_trap)
 {
   struct snmp_trap_dst *td;
   struct netif *dst_if;
-#if LWIP_IPV4 && LWIP_IPV6
-  ip_addr_t dst_ip_storage;
-#endif /* LWIP_IPV4 && LWIP_IPV6 */
-  ip_addr_t* dst_ip;
+  ip_addr_t dst_ip;
   struct pbuf *p;
   u16_t i,tot_len;
-  err_t err = ERR_OK;
 
   for (i=0, td = &trap_dst[0]; i<SNMP_TRAP_DESTINATIONS; i++, td++)
   {
@@ -243,57 +225,56 @@ snmp_send_trap(s8_t generic_trap, const struct snmp_obj_id *eoid, s32_t specific
       /* network order trap destination */
       ip_addr_copy(trap_msg.dip, td->dip);
       /* lookup current source address for this dst */
-      ip_route_get_local_ip(PCB_ISIPV6(trap_msg.pcb), &trap_msg.pcb->local_ip,
-        &td->dip, dst_if, dst_ip, &dst_ip_storage);
-      if ((dst_if != NULL) && (dst_ip != NULL)) {
-        trap_msg.sip_raw_len = (IP_IS_V6_VAL(*dst_ip) ? 16 : 4);
-        memcpy(trap_msg.sip_raw, dst_ip, trap_msg.sip_raw_len);
-        trap_msg.gen_trap = generic_trap;
-        trap_msg.spc_trap = specific_trap;
-        if (generic_trap == SNMP_GENTRAP_ENTERPRISESPC)
-        {
-          /* enterprise-Specific trap */
-          trap_msg.enterprise = eoid;
-        }
-        else
-        {
-          /* generic (MIB-II) trap */
-          mib2_get_snmpgrpid_ptr(&trap_msg.enterprise);
-        }
+      dst_if = ip_route(&td->dip);
+      ip_addr_copy(dst_ip, dst_if->ip_addr);
+      /* @todo: what about IPv6? */
+      trap_msg.sip_raw[0] = ip4_addr1(&dst_ip);
+      trap_msg.sip_raw[1] = ip4_addr2(&dst_ip);
+      trap_msg.sip_raw[2] = ip4_addr3(&dst_ip);
+      trap_msg.sip_raw[3] = ip4_addr4(&dst_ip);
+      trap_msg.gen_trap = generic_trap;
+      trap_msg.spc_trap = specific_trap;
+      if (generic_trap == SNMP_GENTRAP_ENTERPRISESPC)
+      {
+        /* enterprise-Specific trap */
+        trap_msg.enterprise = eoid;
+      }
+      else
+      {
+        /* generic (MIB-II) trap */
+        snmp_get_snmpgrpid_ptr(&trap_msg.enterprise);
+      }
+      snmp_get_sysuptime(&trap_msg.ts);
 
-        MIB2_COPY_SYSUPTIME_TO(&trap_msg.ts);
+      /* pass 0, calculate length fields */
+      tot_len = snmp_varbind_list_sum(&trap_msg.outvb);
+      tot_len = snmp_trap_header_sum(&trap_msg, tot_len);
 
-        /* pass 0, calculate length fields */
-        tot_len = snmp_varbind_list_sum(&trap_msg.outvb);
-        tot_len = snmp_trap_header_sum(&trap_msg, tot_len);
+      /* allocate pbuf(s) */
+      p = pbuf_alloc(PBUF_TRANSPORT, tot_len, PBUF_POOL);
+      if (p != NULL)
+      {
+        u16_t ofs;
 
-        /* allocate pbuf(s) */
-        p = pbuf_alloc(PBUF_TRANSPORT, tot_len, PBUF_POOL);
-        if (p != NULL)
-        {
-          u16_t ofs;
+        /* pass 1, encode packet ino the pbuf(s) */
+        ofs = snmp_trap_header_enc(&trap_msg, p);
+        snmp_varbind_list_enc(&trap_msg.outvb, p, ofs);
 
-          /* pass 1, encode packet ino the pbuf(s) */
-          ofs = snmp_trap_header_enc(&trap_msg, p);
-          snmp_varbind_list_enc(&trap_msg.outvb, p, ofs);
+        snmp_inc_snmpouttraps();
+        snmp_inc_snmpoutpkts();
 
-          mib2_inc_snmpouttraps();
-          mib2_inc_snmpoutpkts();
+        /** send to the TRAP destination */
+        udp_sendto(trap_msg.pcb, p, &trap_msg.dip, SNMP_TRAP_PORT);
 
-          /** send to the TRAP destination */
-          udp_sendto(trap_msg.pcb, p, &trap_msg.dip, SNMP_TRAP_PORT);
-
-          pbuf_free(p);
-        } else {
-          err = ERR_MEM;
-        }
-      } else {
-        /* routing error */
-        err = ERR_RTE;
+        pbuf_free(p);
+      }
+      else
+      {
+        return ERR_MEM;
       }
     }
   }
-  return err;
+  return ERR_OK;
 }
 
 void
@@ -309,7 +290,7 @@ void
 snmp_authfail_trap(void)
 {
   u8_t enable;
-  mib2_get_snmpenableauthentraps(&enable);
+  snmp_get_snmpenableauthentraps(&enable);
   if (enable == 1)
   {
     trap_msg.outvb.head = NULL;
@@ -325,13 +306,12 @@ snmp_authfail_trap(void)
  *
  * @param vb_len varbind-list length
  * @param rhl points to returned header lengths
- * @return the required length for encoding the response header
+ * @return the required lenght for encoding the response header
  */
 static u16_t
 snmp_resp_header_sum(struct snmp_msg_pstat *m_stat, u16_t vb_len)
 {
   u16_t tot_len;
-  s32_t snmp_req_ver;
   struct snmp_resp_header_lengths *rhl;
 
   rhl = &m_stat->rhl;
@@ -356,8 +336,7 @@ snmp_resp_header_sum(struct snmp_msg_pstat *m_stat, u16_t vb_len)
   snmp_asn1_enc_length_cnt(rhl->comlen, &rhl->comlenlen);
   tot_len += 1 + rhl->comlenlen + rhl->comlen;
 
-  snmp_req_ver = m_stat->version;
-  snmp_asn1_enc_s32t_cnt(snmp_req_ver, &rhl->verlen);
+  snmp_asn1_enc_s32t_cnt(snmp_version, &rhl->verlen);
   snmp_asn1_enc_length_cnt(rhl->verlen, &rhl->verlenlen);
   tot_len += 1 + rhl->verlen + rhl->verlenlen;
 
@@ -374,7 +353,7 @@ snmp_resp_header_sum(struct snmp_msg_pstat *m_stat, u16_t vb_len)
  *
  * @param vb_len varbind-list length
  * @param thl points to returned header lengths
- * @return the required length for encoding the trap header
+ * @return the required lenght for encoding the trap header
  */
 static u16_t
 snmp_trap_header_sum(struct snmp_msg_trap *m_trap, u16_t vb_len)
@@ -397,7 +376,7 @@ snmp_trap_header_sum(struct snmp_msg_trap *m_trap, u16_t vb_len)
   snmp_asn1_enc_length_cnt(thl->gtrplen, &thl->gtrplenlen);
   tot_len += 1 + thl->gtrplen + thl->gtrplenlen;
 
-  thl->aaddrlen = m_trap->sip_raw_len;
+  thl->aaddrlen = 4;
   snmp_asn1_enc_length_cnt(thl->aaddrlen, &thl->aaddrlenlen);
   tot_len += 1 + thl->aaddrlen + thl->aaddrlenlen;
 
@@ -409,7 +388,7 @@ snmp_trap_header_sum(struct snmp_msg_trap *m_trap, u16_t vb_len)
   snmp_asn1_enc_length_cnt(thl->pdulen, &thl->pdulenlen);
   tot_len += 1 + thl->pdulenlen;
 
-  thl->comlen = (u16_t)strlen(snmp_community_trap);
+  thl->comlen = sizeof(snmp_publiccommunity) - 1;
   snmp_asn1_enc_length_cnt(thl->comlen, &thl->comlenlen);
   tot_len += 1 + thl->comlenlen + thl->comlen;
 
@@ -429,7 +408,7 @@ snmp_trap_header_sum(struct snmp_msg_trap *m_trap, u16_t vb_len)
  * annotates lengths in varbind for second encoding pass.
  *
  * @param root points to the root of the variable binding list
- * @return the required length for encoding the variable bindings
+ * @return the required lenght for encoding the variable bindings
  */
 static u16_t
 snmp_varbind_list_sum(struct snmp_varbind_root *root)
@@ -501,7 +480,6 @@ static u16_t
 snmp_resp_header_enc(struct snmp_msg_pstat *m_stat, struct pbuf *p)
 {
   u16_t ofs;
-  s32_t snmp_req_ver;
 
   ofs = 0;
   snmp_asn1_enc_type(p, ofs, (SNMP_ASN1_UNIV | SNMP_ASN1_CONSTR | SNMP_ASN1_SEQ));
@@ -513,8 +491,7 @@ snmp_resp_header_enc(struct snmp_msg_pstat *m_stat, struct pbuf *p)
   ofs += 1;
   snmp_asn1_enc_length(p, ofs, m_stat->rhl.verlen);
   ofs += m_stat->rhl.verlenlen;
-  snmp_req_ver = m_stat->version;
-  snmp_asn1_enc_s32t(p, ofs, m_stat->rhl.verlen, snmp_req_ver);
+  snmp_asn1_enc_s32t(p, ofs, m_stat->rhl.verlen, snmp_version);
   ofs += m_stat->rhl.verlen;
 
   snmp_asn1_enc_type(p, ofs, (SNMP_ASN1_UNIV | SNMP_ASN1_PRIMIT | SNMP_ASN1_OC_STR));
@@ -578,7 +555,7 @@ snmp_trap_header_enc(struct snmp_msg_trap *m_trap, struct pbuf *p)
   ofs += 1;
   snmp_asn1_enc_length(p, ofs, m_trap->thl.comlen);
   ofs += m_trap->thl.comlenlen;
-  snmp_asn1_enc_raw(p, ofs, m_trap->thl.comlen, (const u8_t *)&snmp_community_trap[0]);
+  snmp_asn1_enc_raw(p, ofs, m_trap->thl.comlen, (u8_t *)&snmp_publiccommunity[0]);
   ofs += m_trap->thl.comlen;
 
   snmp_asn1_enc_type(p, ofs, (SNMP_ASN1_CONTXT | SNMP_ASN1_CONSTR | SNMP_ASN1_PDU_TRAP));

@@ -50,14 +50,13 @@ static const char *err_strerr[] = {
            "Illegal value.",         /* ERR_VAL        -6  */
            "Operation would block.", /* ERR_WOULDBLOCK -7  */
            "Address in use.",        /* ERR_USE        -8  */
-           "Already connecting.",    /* ERR_ALREADY    -9  */
-           "Already connected.",     /* ERR_ISCONN     -10 */
-           "Not connected.",         /* ERR_CONN       -11 */
-           "Connection aborted.",    /* ERR_ABRT       -12 */
-           "Connection reset.",      /* ERR_RST        -13 */
-           "Connection closed.",     /* ERR_CLSD       -14 */
-           "Illegal argument.",      /* ERR_ARG        -15 */
-           "Low-level netif error.", /* ERR_IF         -16 */
+           "Already connected.",     /* ERR_ISCONN     -9  */
+           "Connection aborted.",    /* ERR_ABRT       -10 */
+           "Connection reset.",      /* ERR_RST        -11 */
+           "Connection closed.",     /* ERR_CLSD       -12 */
+           "Not connected.",         /* ERR_CONN       -13 */
+           "Illegal argument.",      /* ERR_ARG        -14 */
+           "Low-level netif error.", /* ERR_IF         -15 */
 };
 
 /**

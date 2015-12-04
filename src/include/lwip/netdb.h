@@ -26,8 +26,8 @@
  * Author: Simon Goldschmidt
  *
  */
-#ifndef LWIP_HDR_NETDB_H
-#define LWIP_HDR_NETDB_H
+#ifndef __LWIP_NETDB_H__
+#define __LWIP_NETDB_H__
 
 #include "lwip/opt.h"
 
@@ -44,19 +44,15 @@ extern "C" {
 
 /* some rarely used options */
 #ifndef LWIP_DNS_API_DECLARE_H_ERRNO
-#define LWIP_DNS_API_DECLARE_H_ERRNO  1
+#define LWIP_DNS_API_DECLARE_H_ERRNO 1
 #endif
 
 #ifndef LWIP_DNS_API_DEFINE_ERRORS
-#define LWIP_DNS_API_DEFINE_ERRORS    1
-#endif
-
-#ifndef LWIP_DNS_API_DEFINE_FLAGS
-#define LWIP_DNS_API_DEFINE_FLAGS     1
+#define LWIP_DNS_API_DEFINE_ERRORS 1
 #endif
 
 #ifndef LWIP_DNS_API_DECLARE_STRUCTS
-#define LWIP_DNS_API_DECLARE_STRUCTS  1
+#define LWIP_DNS_API_DECLARE_STRUCTS 1
 #endif
 
 #if LWIP_DNS_API_DEFINE_ERRORS
@@ -65,24 +61,12 @@ extern "C" {
 #define EAI_SERVICE     201
 #define EAI_FAIL        202
 #define EAI_MEMORY      203
-#define EAI_FAMILY      204
 
 #define HOST_NOT_FOUND  210
 #define NO_DATA         211
 #define NO_RECOVERY     212
 #define TRY_AGAIN       213
 #endif /* LWIP_DNS_API_DEFINE_ERRORS */
-
-#if LWIP_DNS_API_DEFINE_FLAGS
-/* input flags for struct addrinfo */
-#define AI_PASSIVE      0x01
-#define AI_CANONNAME    0x02
-#define AI_NUMERICHOST  0x04
-#define AI_NUMERICSERV  0x08
-#define AI_V4MAPPED     0x10
-#define AI_ALL          0x20
-#define AI_ADDRCONFIG   0x40
-#endif /* LWIP_DNS_API_DEFINE_FLAGS */
 
 #if LWIP_DNS_API_DECLARE_STRUCTS
 struct hostent {
@@ -108,10 +92,8 @@ struct addrinfo {
 };
 #endif /* LWIP_DNS_API_DECLARE_STRUCTS */
 
-#define NETDB_ELEM_SIZE           (sizeof(struct addrinfo) + sizeof(struct sockaddr_storage) + DNS_MAX_NAME_LENGTH + 1)
-
 #if LWIP_DNS_API_DECLARE_H_ERRNO
-/* application accessible error code set by the DNS API functions */
+/* application accessable error code set by the DNS API functions */
 extern int h_errno;
 #endif /* LWIP_DNS_API_DECLARE_H_ERRNO*/
 
@@ -139,4 +121,4 @@ int lwip_getaddrinfo(const char *nodename,
 
 #endif /* LWIP_DNS && LWIP_SOCKET */
 
-#endif /* LWIP_HDR_NETDB_H */
+#endif /* __LWIP_NETDB_H__ */

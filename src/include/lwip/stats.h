@@ -29,8 +29,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef LWIP_HDR_STATS_H
-#define LWIP_HDR_STATS_H
+#ifndef __LWIP_STATS_H__
+#define __LWIP_STATS_H__
 
 #include "lwip/opt.h"
 
@@ -91,10 +91,10 @@ struct stats_mem {
 #ifdef LWIP_DEBUG
   const char *name;
 #endif /* LWIP_DEBUG */
-  STAT_COUNTER err;
   mem_size_t avail;
   mem_size_t used;
   mem_size_t max;
+  STAT_COUNTER err;
   STAT_COUNTER illegal;
 };
 
@@ -108,72 +108,6 @@ struct stats_sys {
   struct stats_syselem sem;
   struct stats_syselem mutex;
   struct stats_syselem mbox;
-};
-
-struct stats_mib2 {
-  /* IP */
-  u32_t ipinhdrerrors;
-  u32_t ipinaddrerrors;
-  u32_t ipinunknownprotos;
-  u32_t ipindiscards;
-  u32_t ipindelivers;
-  u32_t ipoutrequests;
-  u32_t ipoutdiscards;
-  u32_t ipoutnoroutes;
-  u32_t ipreasmoks; /* @todo: never incremented */
-  u32_t ipreasmfails;
-  u32_t ipfragoks;
-  u32_t ipfragfails; /* @todo: never incremented */
-  u32_t ipfragcreates;
-  u32_t iproutingdiscards; /* @todo: never incremented */
-  u32_t ipreasmreqds;
-  u32_t ipforwdatagrams;
-  u32_t ipinreceives;
-
-  /* TCP */
-  u32_t tcpactiveopens;
-  u32_t tcppassiveopens;
-  u32_t tcpattemptfails;
-  u32_t tcpestabresets;
-  u32_t tcpoutsegs;
-  u32_t tcpretranssegs;
-  u32_t tcpinsegs;
-  u32_t tcpinerrs;
-  u32_t tcpoutrsts;
-
-  /* UDP */
-  u32_t udpindatagrams;
-  u32_t udpnoports;
-  u32_t udpinerrors;
-  u32_t udpoutdatagrams;
-
-  /* ICMP */
-  u32_t icmpinmsgs;
-  u32_t icmpinerrors;
-  u32_t icmpindestunreachs; /* @todo: never incremented */
-  u32_t icmpintimeexcds; /* @todo: never incremented */
-  u32_t icmpinparmprobs; /* @todo: never incremented */
-  u32_t icmpinsrcquenchs; /* @todo: never incremented */
-  u32_t icmpinredirects; /* @todo: never incremented */
-  u32_t icmpinechos; /* @todo: never incremented */
-  u32_t icmpinechoreps; /* @todo: never incremented */
-  u32_t icmpintimestamps; /* @todo: never incremented */
-  u32_t icmpintimestampreps; /* @todo: never incremented */
-  u32_t icmpinaddrmasks; /* @todo: never incremented */
-  u32_t icmpinaddrmaskreps; /* @todo: never incremented */
-  u32_t icmpoutmsgs;
-  u32_t icmpouterrors; /* @todo: never incremented */
-  u32_t icmpoutdestunreachs; /* @todo: never incremented */
-  u32_t icmpouttimeexcds;
-  u32_t icmpoutparmprobs; /* @todo: never incremented */
-  u32_t icmpoutsrcquenchs; /* @todo: never incremented */
-  u32_t icmpoutredirects; /* @todo: never incremented */
-  u32_t icmpoutechos; /* @todo: never incremented */
-  u32_t icmpoutechoreps;
-  u32_t icmpouttimestamps; /* @todo: never incremented */
-  u32_t icmpouttimestampreps; /* @todo: never incremented */
-  u32_t icmpoutaddrmasks; /* @todo: never incremented */
-  u32_t icmpoutaddrmaskreps; /* @todo: never incremented */
 };
 
 struct stats_ {
@@ -210,24 +144,6 @@ struct stats_ {
 #if SYS_STATS
   struct stats_sys sys;
 #endif
-#if IP6_STATS
-  struct stats_proto ip6;
-#endif
-#if ICMP6_STATS
-  struct stats_proto icmp6;
-#endif
-#if IP6_FRAG_STATS
-  struct stats_proto ip6_frag;
-#endif
-#if MLD6_STATS
-  struct stats_igmp mld6;
-#endif
-#if ND6_STATS
-  struct stats_proto nd6;
-#endif
-#if MIB2_STATS
-  struct stats_mib2 mib2;
-#endif
 };
 
 extern struct stats_ lwip_stats;
@@ -241,7 +157,6 @@ void stats_init(void);
                                     lwip_stats.x.max = lwip_stats.x.used; \
                                 } \
                              } while(0)
-#define STATS_GET(x) lwip_stats.x
 #else /* LWIP_STATS */
 #define stats_init()
 #define STATS_INC(x)
@@ -275,7 +190,7 @@ void stats_init(void);
 
 #if IGMP_STATS
 #define IGMP_STATS_INC(x) STATS_INC(x)
-#define IGMP_STATS_DISPLAY() stats_display_igmp(&lwip_stats.igmp, "IGMP")
+#define IGMP_STATS_DISPLAY() stats_display_igmp(&lwip_stats.igmp)
 #else
 #define IGMP_STATS_INC(x)
 #define IGMP_STATS_DISPLAY()
@@ -353,64 +268,18 @@ void stats_init(void);
 #define SYS_STATS_DISPLAY()
 #endif
 
-#if IP6_STATS
-#define IP6_STATS_INC(x) STATS_INC(x)
-#define IP6_STATS_DISPLAY() stats_display_proto(&lwip_stats.ip6, "IPv6")
-#else
-#define IP6_STATS_INC(x)
-#define IP6_STATS_DISPLAY()
-#endif
-
-#if ICMP6_STATS
-#define ICMP6_STATS_INC(x) STATS_INC(x)
-#define ICMP6_STATS_DISPLAY() stats_display_proto(&lwip_stats.icmp6, "ICMPv6")
-#else
-#define ICMP6_STATS_INC(x)
-#define ICMP6_STATS_DISPLAY()
-#endif
-
-#if IP6_FRAG_STATS
-#define IP6_FRAG_STATS_INC(x) STATS_INC(x)
-#define IP6_FRAG_STATS_DISPLAY() stats_display_proto(&lwip_stats.ip6_frag, "IPv6 FRAG")
-#else
-#define IP6_FRAG_STATS_INC(x)
-#define IP6_FRAG_STATS_DISPLAY()
-#endif
-
-#if MLD6_STATS
-#define MLD6_STATS_INC(x) STATS_INC(x)
-#define MLD6_STATS_DISPLAY() stats_display_igmp(&lwip_stats.mld6, "MLDv1")
-#else
-#define MLD6_STATS_INC(x)
-#define MLD6_STATS_DISPLAY()
-#endif
-
-#if ND6_STATS
-#define ND6_STATS_INC(x) STATS_INC(x)
-#define ND6_STATS_DISPLAY() stats_display_proto(&lwip_stats.nd6, "ND")
-#else
-#define ND6_STATS_INC(x)
-#define ND6_STATS_DISPLAY()
-#endif
-
-#if MIB2_STATS
-#define MIB2_STATS_INC(x) STATS_INC(x)
-#else
-#define MIB2_STATS_INC(x)
-#endif
-
 /* Display of statistics */
 #if LWIP_STATS_DISPLAY
 void stats_display(void);
 void stats_display_proto(struct stats_proto *proto, const char *name);
-void stats_display_igmp(struct stats_igmp *igmp, const char *name);
+void stats_display_igmp(struct stats_igmp *igmp);
 void stats_display_mem(struct stats_mem *mem, const char *name);
 void stats_display_memp(struct stats_mem *mem, int index);
 void stats_display_sys(struct stats_sys *sys);
 #else /* LWIP_STATS_DISPLAY */
 #define stats_display()
 #define stats_display_proto(proto, name)
-#define stats_display_igmp(igmp, name)
+#define stats_display_igmp(igmp)
 #define stats_display_mem(mem, name)
 #define stats_display_memp(mem, index)
 #define stats_display_sys(sys)
@@ -420,4 +289,4 @@ void stats_display_sys(struct stats_sys *sys);
 }
 #endif
 
-#endif /* LWIP_HDR_STATS_H */
+#endif /* __LWIP_STATS_H__ */

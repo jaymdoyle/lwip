@@ -61,7 +61,7 @@ netbuf *netbuf_new(void)
   if (buf != NULL) {
     buf->p = NULL;
     buf->ptr = NULL;
-    ip_addr_set_zero(&buf->addr);
+    ip_addr_set_any(&buf->addr);
     buf->port = 0;
 #if LWIP_NETBUF_RECVINFO || LWIP_CHECKSUM_ON_COPY
 #if LWIP_CHECKSUM_ON_COPY
@@ -69,7 +69,7 @@ netbuf *netbuf_new(void)
 #endif /* LWIP_CHECKSUM_ON_COPY */
     buf->toport_chksum = 0;
 #if LWIP_NETBUF_RECVINFO
-    ip_addr_set_zero(&buf->toaddr);
+    ip_addr_set_any(&buf->toaddr);
 #endif /* LWIP_NETBUF_RECVINFO */
 #endif /* LWIP_NETBUF_RECVINFO || LWIP_CHECKSUM_ON_COPY */
     return buf;
@@ -158,7 +158,7 @@ netbuf_ref(struct netbuf *buf, const void *dataptr, u16_t size)
     buf->ptr = NULL;
     return ERR_MEM;
   }
-  ((struct pbuf_rom*)buf->p)->payload = dataptr;
+  buf->p->payload = (void*)dataptr;
   buf->p->len = buf->p->tot_len = size;
   buf->ptr = buf->p;
   return ERR_OK;
@@ -186,7 +186,7 @@ netbuf_chain(struct netbuf *head, struct netbuf *tail)
  * @param buf netbuf to get the data from
  * @param dataptr pointer to a void pointer where to store the data pointer
  * @param len pointer to an u16_t where the length of the data is stored
- * @return ERR_OK if the information was retrieved,
+ * @return ERR_OK if the information was retreived,
  *         ERR_BUF on error.
  */
 err_t

@@ -34,8 +34,8 @@
  * Author: Christiaan Simons <christiaan.simons@axon.tv>
  */
 
-#ifndef LWIP_HDR_SNMP_STRUCTS_H
-#define LWIP_HDR_SNMP_STRUCTS_H
+#ifndef __LWIP_SNMP_STRUCTS_H__
+#define __LWIP_SNMP_STRUCTS_H__
 
 #include "lwip/opt.h"
 
@@ -138,7 +138,7 @@ struct mib_array_node
 
   /* additional struct members */
   const s32_t *objid;
-  const struct mib_node* const *nptr;
+  struct mib_node* const *nptr;
 };
 
 /** derived node, points to a fixed size mem_malloced array
@@ -202,7 +202,7 @@ struct mib_external_node
 
   /* additional struct members */
   /** points to an external (in memory) record of some sort of addressing
-      information, passed to and interpreted by the functions below */
+      information, passed to and interpreted by the funtions below */
   void* addr_inf;
   /** tree levels under this node */
   u8_t tree_levels;
@@ -240,8 +240,8 @@ void noleafs_get_value(struct obj_def *od, u16_t len, void *value);
 u8_t noleafs_set_test(struct obj_def *od, u16_t len, void *value);
 void noleafs_set_value(struct obj_def *od, u16_t len, void *value);
 
-void snmp_oidtoip(s32_t *ident, ip4_addr_t *ip);
-void snmp_iptooid(ip4_addr_t *ip, s32_t *ident);
+void snmp_oidtoip(s32_t *ident, ip_addr_t *ip);
+void snmp_iptooid(ip_addr_t *ip, s32_t *ident);
 void snmp_ifindextonetif(s32_t ifindex, struct netif **netif);
 void snmp_netiftoifindex(struct netif *netif, s32_t *ifidx);
 
@@ -254,41 +254,10 @@ s8_t snmp_mib_node_insert(struct mib_list_rootnode *rn, s32_t objid, struct mib_
 s8_t snmp_mib_node_find(struct mib_list_rootnode *rn, s32_t objid, struct mib_list_node **fn);
 struct mib_list_rootnode *snmp_mib_node_delete(struct mib_list_rootnode *rn, struct mib_list_node *n);
 
-const struct mib_node* snmp_search_tree(const struct mib_node *node, u8_t ident_len, s32_t *ident, struct snmp_name_ptr *np);
-const struct mib_node* snmp_expand_tree(const struct mib_node *node, u8_t ident_len, s32_t *ident, struct snmp_obj_id *oidret);
+struct mib_node* snmp_search_tree(struct mib_node *node, u8_t ident_len, s32_t *ident, struct snmp_name_ptr *np);
+struct mib_node* snmp_expand_tree(struct mib_node *node, u8_t ident_len, s32_t *ident, struct snmp_obj_id *oidret);
 u8_t snmp_iso_prefix_tst(u8_t ident_len, s32_t *ident);
 u8_t snmp_iso_prefix_expand(u8_t ident_len, s32_t *ident, struct snmp_obj_id *oidret);
-
-/* SNMP stack internal MIB2 statistics */
-void mib2_inc_snmpinpkts(void);
-void mib2_inc_snmpoutpkts(void);
-void mib2_inc_snmpinbadversions(void);
-void mib2_inc_snmpinbadcommunitynames(void);
-void mib2_inc_snmpinbadcommunityuses(void);
-void mib2_inc_snmpinasnparseerrs(void);
-void mib2_inc_snmpintoobigs(void);
-void mib2_inc_snmpinnosuchnames(void);
-void mib2_inc_snmpinbadvalues(void);
-void mib2_inc_snmpinreadonlys(void);
-void mib2_inc_snmpingenerrs(void);
-void mib2_add_snmpintotalreqvars(u8_t value);
-void mib2_add_snmpintotalsetvars(u8_t value);
-void mib2_inc_snmpingetrequests(void);
-void mib2_inc_snmpingetnexts(void);
-void mib2_inc_snmpinsetrequests(void);
-void mib2_inc_snmpingetresponses(void);
-void mib2_inc_snmpintraps(void);
-void mib2_inc_snmpouttoobigs(void);
-void mib2_inc_snmpoutnosuchnames(void);
-void mib2_inc_snmpoutbadvalues(void);
-void mib2_inc_snmpoutgenerrs(void);
-void mib2_inc_snmpoutgetrequests(void);
-void mib2_inc_snmpoutgetnexts(void);
-void mib2_inc_snmpoutsetrequests(void);
-void mib2_inc_snmpoutgetresponses(void);
-void mib2_inc_snmpouttraps(void);
-void mib2_get_snmpgrpid_ptr(const struct snmp_obj_id **oid);
-void mib2_get_snmpenableauthentraps(u8_t *value);
 
 #ifdef __cplusplus
 }
@@ -296,4 +265,4 @@ void mib2_get_snmpenableauthentraps(u8_t *value);
 
 #endif /* LWIP_SNMP */
 
-#endif /* LWIP_HDR_SNMP_STRUCTS_H */
+#endif /* __LWIP_SNMP_STRUCTS_H__ */

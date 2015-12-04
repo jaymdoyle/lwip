@@ -29,18 +29,12 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef LWIP_HDR_DEF_H
-#define LWIP_HDR_DEF_H
+#ifndef __LWIP_DEF_H__
+#define __LWIP_DEF_H__
 
 /* arch.h might define NULL already */
 #include "lwip/arch.h"
 #include "lwip/opt.h"
-#if LWIP_PERF
-#include "arch/perf.h"
-#else /* LWIP_PERF */
-#define PERF_START    /* null definition */
-#define PERF_STOP(x)  /* null definition */
-#endif /* LWIP_PERF */
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,5 +119,5 @@ u32_t lwip_ntohl(u32_t x);
 }
 #endif
 
-#endif /* LWIP_HDR_DEF_H */
+#endif /* __LWIP_DEF_H__ */
 

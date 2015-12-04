@@ -29,8 +29,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef LWIP_HDR_TCP_IMPL_H
-#define LWIP_HDR_TCP_IMPL_H
+#ifndef __LWIP_TCP_IMPL_H__
+#define __LWIP_TCP_IMPL_H__
 
 #include "lwip/opt.h"
 
@@ -42,8 +42,6 @@
 #include "lwip/ip.h"
 #include "lwip/icmp.h"
 #include "lwip/err.h"
-#include "lwip/ip6.h"
-#include "lwip/ip6_addr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,11 +59,6 @@ void             tcp_tmr     (void);  /* Must be called every
 void             tcp_slowtmr (void);
 void             tcp_fasttmr (void);
 
-/* Call this from a netif driver (watch out for threading issues!) that has
-   returned a memory error on transmit and now has free buffers to send more.
-   This iterates all active pcbs that had an error and tries to call
-   tcp_output, so use this with care as it might slow down the system. */
-void             tcp_txnow   (void);
 
 /* Only used by IP to pass a TCP segment to TCP: */
 void             tcp_input   (struct pbuf *p, struct netif *inp);
@@ -182,18 +175,18 @@ PACK_STRUCT_END
 #define TCPH_FLAGS(phdr)  (ntohs((phdr)->_hdrlen_rsvd_flags) & TCP_FLAGS)
 
 #define TCPH_HDRLEN_SET(phdr, len) (phdr)->_hdrlen_rsvd_flags = htons(((len) << 12) | TCPH_FLAGS(phdr))
-#define TCPH_FLAGS_SET(phdr, flags) (phdr)->_hdrlen_rsvd_flags = (((phdr)->_hdrlen_rsvd_flags & PP_HTONS(~TCP_FLAGS)) | htons(flags))
+#define TCPH_FLAGS_SET(phdr, flags) (phdr)->_hdrlen_rsvd_flags = (((phdr)->_hdrlen_rsvd_flags & PP_HTONS((u16_t)(~(u16_t)(TCP_FLAGS)))) | htons(flags))
 #define TCPH_HDRLEN_FLAGS_SET(phdr, len, flags) (phdr)->_hdrlen_rsvd_flags = htons(((len) << 12) | (flags))
 
 #define TCPH_SET_FLAG(phdr, flags ) (phdr)->_hdrlen_rsvd_flags = ((phdr)->_hdrlen_rsvd_flags | htons(flags))
 #define TCPH_UNSET_FLAG(phdr, flags) (phdr)->_hdrlen_rsvd_flags = htons(ntohs((phdr)->_hdrlen_rsvd_flags) | (TCPH_FLAGS(phdr) & ~(flags)) )
 
-#define TCP_TCPLEN(seg) ((seg)->len + (((TCPH_FLAGS((seg)->tcphdr) & (TCP_FIN | TCP_SYN)) != 0) ? 1U : 0U))
+#define TCP_TCPLEN(seg) ((seg)->len + ((TCPH_FLAGS((seg)->tcphdr) & (TCP_FIN | TCP_SYN)) != 0))
 
 /** Flags used on input processing, not on pcb->flags
 */
 #define TF_RESET     (u8_t)0x08U   /* Connection was reset. */
-#define TF_CLOSED    (u8_t)0x10U   /* Connection was successfully closed. */
+#define TF_CLOSED    (u8_t)0x10U   /* Connection was sucessfully closed. */
 #define TF_GOT_FIN   (u8_t)0x20U   /* Connection was closed by the remote end. */
 
 
@@ -282,7 +275,7 @@ PACK_STRUCT_END
 
 /* This structure represents a TCP segment on the unsent, unacked and ooseq queues */
 struct tcp_seg {
-  struct tcp_seg *next;    /* used when putting segments on a queue */
+  struct tcp_seg *next;    /* used when putting segements on a queue */
   struct pbuf *p;          /* buffer containing data + TCP header */
   u16_t len;               /* the TCP length of this segment */
 #if TCP_OVERSIZE_DBGCHECK
@@ -299,49 +292,15 @@ struct tcp_seg {
 #define TF_SEG_OPTS_TS          (u8_t)0x02U /* Include timestamp option. */
 #define TF_SEG_DATA_CHECKSUMMED (u8_t)0x04U /* ALL data (not the header) is
                                                checksummed into 'chksum' */
-#define TF_SEG_OPTS_WND_SCALE   (u8_t)0x08U /* Include WND SCALE option */
   struct tcp_hdr *tcphdr;  /* the TCP header */
 };
 
-#define LWIP_TCP_OPT_EOL        0
-#define LWIP_TCP_OPT_NOP        1
-#define LWIP_TCP_OPT_MSS        2
-#define LWIP_TCP_OPT_WS         3
-#define LWIP_TCP_OPT_TS         8
-
-#define LWIP_TCP_OPT_LEN_MSS    4
-#if LWIP_TCP_TIMESTAMPS
-#define LWIP_TCP_OPT_LEN_TS     10
-#define LWIP_TCP_OPT_LEN_TS_OUT 12 /* aligned for output (includes NOP padding) */
-#else
-#define LWIP_TCP_OPT_LEN_TS_OUT 0
-#endif
-#if LWIP_WND_SCALE
-#define LWIP_TCP_OPT_LEN_WS     3
-#define LWIP_TCP_OPT_LEN_WS_OUT 4 /* aligned for output (includes NOP padding) */
-#else
-#define LWIP_TCP_OPT_LEN_WS_OUT 0
-#endif
-
-#define LWIP_TCP_OPT_LENGTH(flags) \
-  (flags & TF_SEG_OPTS_MSS       ? LWIP_TCP_OPT_LEN_MSS    : 0) + \
-  (flags & TF_SEG_OPTS_TS        ? LWIP_TCP_OPT_LEN_TS_OUT : 0) + \
-  (flags & TF_SEG_OPTS_WND_SCALE ? LWIP_TCP_OPT_LEN_WS_OUT : 0)
+#define LWIP_TCP_OPT_LENGTH(flags)              \
+  (flags & TF_SEG_OPTS_MSS ? 4  : 0) +          \
+  (flags & TF_SEG_OPTS_TS  ? 12 : 0)
 
 /** This returns a TCP header option for MSS in an u32_t */
 #define TCP_BUILD_MSS_OPTION(mss) htonl(0x02040000 | ((mss) & 0xFFFF))
-
-#if LWIP_WND_SCALE
-#define TCPWNDSIZE_F       U32_F
-#define TCPWND_MAX         0xFFFFFFFFU
-#define TCPWND_CHECK16(x)  LWIP_ASSERT("window size > 0xFFFF", (x) <= 0xFFFF)
-#define TCPWND_MIN16(x)    ((u16_t)LWIP_MIN((x), 0xFFFF))
-#else /* LWIP_WND_SCALE */
-#define TCPWNDSIZE_F       U16_F
-#define TCPWND_MAX         0xFFFFU
-#define TCPWND_CHECK16(x)
-#define TCPWND_MIN16(x)    x
-#endif /* LWIP_WND_SCALE */
 
 /* Global variables: */
 extern struct tcp_pcb *tcp_input_pcb;
@@ -483,31 +442,16 @@ err_t tcp_enqueue_flags(struct tcp_pcb *pcb, u8_t flags);
 void tcp_rexmit_seg(struct tcp_pcb *pcb, struct tcp_seg *seg);
 
 void tcp_rst(u32_t seqno, u32_t ackno,
-       const ip_addr_t *local_ip, const ip_addr_t *remote_ip,
+       ip_addr_t *local_ip, ip_addr_t *remote_ip,
        u16_t local_port, u16_t remote_port);
 
 u32_t tcp_next_iss(void);
 
-err_t tcp_keepalive(struct tcp_pcb *pcb);
-err_t tcp_zero_window_probe(struct tcp_pcb *pcb);
-void  tcp_trigger_input_pcb_close(void);
+void tcp_keepalive(struct tcp_pcb *pcb);
+void tcp_zero_window_probe(struct tcp_pcb *pcb);
 
 #if TCP_CALCULATE_EFF_SEND_MSS
-u16_t tcp_eff_send_mss_impl(u16_t sendmss, const ip_addr_t *dest
-#if LWIP_IPV6 || LWIP_IPV4_SRC_ROUTING
-                           , const ip_addr_t *src
-#endif /* LWIP_IPV6 || LWIP_IPV4_SRC_ROUTING */
-#if LWIP_IPV6 && LWIP_IPV4
-                           , u8_t isipv6
-#endif /* LWIP_IPV6 && LWIP_IPV4 */
-                           );
-#if LWIP_IPV4 && LWIP_IPV6
-#define tcp_eff_send_mss(sendmss, src, dest, isipv6) tcp_eff_send_mss_impl(sendmss, dest, src, isipv6)
-#elif LWIP_IPV6 || LWIP_IPV4_SRC_ROUTING
-#define tcp_eff_send_mss(sendmss, src, dest, isipv6) tcp_eff_send_mss_impl(sendmss, dest, src)
-#else /* LWIP_IPV4 && LWIP_IPV6 */
-#define tcp_eff_send_mss(sendmss, src, dest, isipv6) tcp_eff_send_mss_impl(sendmss, dest)
-#endif /* LWIP_IPV4 && LWIP_IPV6 */
+u16_t tcp_eff_send_mss(u16_t sendmss, ip_addr_t *addr);
 #endif /* TCP_CALCULATE_EFF_SEND_MSS */
 
 #if LWIP_CALLBACK_API
@@ -532,9 +476,6 @@ s16_t tcp_pcbs_sane(void);
  * that a timer is needed (i.e. active- or time-wait-pcb found). */
 void tcp_timer_needed(void);
 
-#if LWIP_IPV4
-void tcp_netif_ipv4_addr_changed(const ip4_addr_t* old_addr, const ip4_addr_t* new_addr);
-#endif /* LWIP_IPV4 */
 
 #ifdef __cplusplus
 }
@@ -542,4 +483,4 @@ void tcp_netif_ipv4_addr_changed(const ip4_addr_t* old_addr, const ip4_addr_t* n
 
 #endif /* LWIP_TCP */
 
-#endif /* LWIP_HDR_TCP_H */
+#endif /* __LWIP_TCP_H__ */

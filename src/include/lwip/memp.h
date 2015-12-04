@@ -30,18 +30,14 @@
  *
  */
 
-#ifndef LWIP_HDR_MEMP_H
-#define LWIP_HDR_MEMP_H
+#ifndef __LWIP_MEMP_H__
+#define __LWIP_MEMP_H__
 
 #include "lwip/opt.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* run once with empty definition to handle all custom includes in lwippools.h */
-#define LWIP_MEMPOOL(name,num,size,desc)
-#include "lwip/memp_std.h"
 
 /* Create the list of all memory pools managed by memp. MEMP_MAX represents a NULL pool at the end */
 typedef enum {
@@ -79,9 +75,9 @@ typedef enum {
 #define MEMP_POOL_LAST   ((memp_t) MEMP_POOL_HELPER_LAST)
 #endif /* MEM_USE_POOLS */
 
-#if MEMP_MEM_MALLOC || MEM_USE_POOLS || MEMP_USE_CUSTOM_POOLS
+#if MEMP_MEM_MALLOC || MEM_USE_POOLS
 extern const u16_t memp_sizes[MEMP_MAX];
-#endif /* MEMP_MEM_MALLOC || MEM_USE_POOLS || MEMP_USE_CUSTOM_POOLS */
+#endif /* MEMP_MEM_MALLOC || MEM_USE_POOLS */
 
 #if MEMP_MEM_MALLOC
 
@@ -98,9 +94,6 @@ extern const u16_t memp_sizes[MEMP_MAX];
 struct memp_malloc_helper
 {
    memp_t poolnr;
-#if MEMP_OVERFLOW_CHECK
-   u16_t size;
-#endif /* MEMP_OVERFLOW_CHECK */
 };
 #endif /* MEM_USE_POOLS */
 
@@ -120,4 +113,4 @@ void  memp_free(memp_t type, void *mem);
 }
 #endif
 
-#endif /* LWIP_HDR_MEMP_H */
+#endif /* __LWIP_MEMP_H__ */

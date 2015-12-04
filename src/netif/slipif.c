@@ -63,9 +63,9 @@
 #include "lwip/def.h"
 #include "lwip/pbuf.h"
 #include "lwip/stats.h"
-#include "lwip/snmp_mib2.h"
-#include "lwip/sys.h"
+#include "lwip/snmp.h"
 #include "lwip/sio.h"
+#include "lwip/sys.h"
 
 #define SLIP_END     0xC0 /* 0300: start and end of every packet */
 #define SLIP_ESC     0xDB /* 0333: escape start (one byte escaped data follows) */
@@ -107,11 +107,12 @@ struct slipif_priv {
  * Uses the serial layer's sio_send()
  *
  * @param netif the lwip network interface structure for this slipif
- * @param p the pbuf chain packet to send
+ * @param p the pbuf chaing packet to send
+ * @param ipaddr the ip address to send the packet to (not used for slipif)
  * @return always returns ERR_OK since the serial layer does not provide return values
  */
-static err_t
-slipif_output(struct netif *netif, struct pbuf *p)
+err_t
+slipif_output(struct netif *netif, struct pbuf *p, ip_addr_t *ipaddr)
 {
   struct slipif_priv *priv;
   struct pbuf *q;
@@ -121,6 +122,8 @@ slipif_output(struct netif *netif, struct pbuf *p)
   LWIP_ASSERT("netif != NULL", (netif != NULL));
   LWIP_ASSERT("netif->state != NULL", (netif->state != NULL));
   LWIP_ASSERT("p != NULL", (p != NULL));
+
+  LWIP_UNUSED_ARG(ipaddr);
 
   LWIP_DEBUGF(SLIP_DEBUG, ("slipif_output(%"U16_F"): sending %"U16_F" bytes\n", (u16_t)netif->num, p->tot_len));
   priv = netif->state;
@@ -154,42 +157,6 @@ slipif_output(struct netif *netif, struct pbuf *p)
   sio_send(SLIP_END, priv->sd);
   return ERR_OK;
 }
-
-/**
- * Send a pbuf doing the necessary SLIP encapsulation
- *
- * Uses the serial layer's sio_send()
- *
- * @param netif the lwip network interface structure for this slipif
- * @param p the pbuf chain packet to send
- * @param ipaddr the ip address to send the packet to (not used for slipif)
- * @return always returns ERR_OK since the serial layer does not provide return values
- */
-static err_t
-slipif_output_v4(struct netif *netif, struct pbuf *p, ip_addr_t *ipaddr)
-{
-  LWIP_UNUSED_ARG(ipaddr);
-  return slipif_output(netif, p);
-}
-
-#if LWIP_IPV6
-/**
- * Send a pbuf doing the necessary SLIP encapsulation
- *
- * Uses the serial layer's sio_send()
- *
- * @param netif the lwip network interface structure for this slipif
- * @param p the pbuf chain packet to send
- * @param ipaddr the ip address to send the packet to (not used for slipif)
- * @return always returns ERR_OK since the serial layer does not provide return values
- */
-static err_t
-slipif_output_v6(struct netif *netif, struct pbuf *p, ip6_addr_t *ipaddr)
-{
-  LWIP_UNUSED_ARG(ipaddr);
-  return slipif_output(netif, p);
-}
-#endif /* LWIP_IPV6 */
 
 /**
  * Handle the incoming SLIP stream character by character
@@ -252,7 +219,7 @@ slipif_rxbyte(struct netif *netif, u8_t c)
   if (priv->p == NULL) {
     /* allocate a new pbuf */
     LWIP_DEBUGF(SLIP_DEBUG, ("slipif_input: alloc\n"));
-    priv->p = pbuf_alloc(PBUF_LINK, (PBUF_POOL_BUFSIZE - PBUF_LINK_HLEN - PBUF_LINK_ENCAPSULATION_HLEN), PBUF_POOL);
+    priv->p = pbuf_alloc(PBUF_LINK, (PBUF_POOL_BUFSIZE - PBUF_LINK_HLEN), PBUF_POOL);
 
     if (priv->p == NULL) {
       LINK_STATS_INC(link.drop);
@@ -363,11 +330,9 @@ slipif_init(struct netif *netif)
 
   netif->name[0] = 's';
   netif->name[1] = 'l';
-  netif->output = slipif_output_v4;
-#if LWIP_IPV6
-  netif->output_ip6 = slipif_output_v6;
-#endif /* LWIP_IPV6 */
+  netif->output = slipif_output;
   netif->mtu = SLIP_MAX_SIZE;
+  netif->flags |= NETIF_FLAG_POINTTOPOINT;
 
   /* netif->state or netif->num contain the port number */
   if (netif->state != NULL) {
@@ -396,7 +361,7 @@ slipif_init(struct netif *netif)
   netif->state = priv;
 
   /* initialize the snmp variables and counters inside the struct netif */
-  MIB2_INIT_NETIF(netif, snmp_ifType_slip, SLIP_SIO_SPEED(priv->sd));
+  NETIF_INIT_SNMP(netif, snmp_ifType_slip, SLIP_SIO_SPEED(priv->sd));
 
 #if SLIP_USE_RX_THREAD
   /* Create a thread to poll the serial line. */

@@ -48,24 +48,16 @@
 #include "lwip/igmp.h"
 #include "lwip/api.h"
 #include "lwip/api_msg.h"
-#include "lwip/sockets.h"
 #include "lwip/tcpip.h"
 #include "lwip/sys.h"
-#include "lwip/timers.h"
+#include "lwip/lwip_timers.h"
 #include "lwip/stats.h"
 #include "netif/etharp.h"
 #include "lwip/ip_frag.h"
 #include "lwip/snmp_structs.h"
 #include "lwip/snmp_msg.h"
 #include "lwip/dns.h"
-#include "lwip/netdb.h"
-#include "netif/ppp/ppp.h"
-#include "netif/ppp/pppos.h"
-#include "netif/ppp/pppoe.h"
-#include "netif/ppp/pppol2tp.h"
-#include "lwip/nd6.h"
-#include "lwip/ip6_frag.h"
-#include "lwip/mld6.h"
+#include "netif/ppp_oe.h"
 
 #include <string.h>
 
@@ -131,7 +123,7 @@ static struct memp *memp_tab[MEMP_MAX];
 #endif /* MEMP_MEM_MALLOC */
 
 /** This array holds the element sizes of each pool. */
-#if !MEM_USE_POOLS && !MEMP_MEM_MALLOC && !MEMP_USE_CUSTOM_POOLS
+#if !MEM_USE_POOLS && !MEMP_MEM_MALLOC
 static
 #endif
 const u16_t memp_sizes[MEMP_MAX] = {
@@ -291,25 +283,17 @@ memp_overflow_check_all(void)
   u16_t i, j;
   struct memp *p;
 
-#if !MEMP_SEPARATE_POOLS
   p = (struct memp *)LWIP_MEM_ALIGN(memp_memory);
-#endif /* !MEMP_SEPARATE_POOLS */
   for (i = 0; i < MEMP_MAX; ++i) {
-#if MEMP_SEPARATE_POOLS
-    p = (struct memp *)(memp_bases[i]);
-#endif /* MEMP_SEPARATE_POOLS */
+    p = p;
     for (j = 0; j < memp_num[i]; ++j) {
       memp_overflow_check_element_overflow(p, i);
       p = (struct memp*)((u8_t*)p + MEMP_SIZE + memp_sizes[i] + MEMP_SANITY_REGION_AFTER_ALIGNED);
     }
   }
-#if !MEMP_SEPARATE_POOLS
   p = (struct memp *)LWIP_MEM_ALIGN(memp_memory);
-#endif /* !MEMP_SEPARATE_POOLS */
   for (i = 0; i < MEMP_MAX; ++i) {
-#if MEMP_SEPARATE_POOLS
-    p = (struct memp *)(memp_bases[i]);
-#endif /* MEMP_SEPARATE_POOLS */
+    p = p;
     for (j = 0; j < memp_num[i]; ++j) {
       memp_overflow_check_element_underflow(p, i);
       p = (struct memp*)((u8_t*)p + MEMP_SIZE + memp_sizes[i] + MEMP_SANITY_REGION_AFTER_ALIGNED);
@@ -327,13 +311,9 @@ memp_overflow_init(void)
   struct memp *p;
   u8_t *m;
 
-#if !MEMP_SEPARATE_POOLS
   p = (struct memp *)LWIP_MEM_ALIGN(memp_memory);
-#endif /* !MEMP_SEPARATE_POOLS */
   for (i = 0; i < MEMP_MAX; ++i) {
-#if MEMP_SEPARATE_POOLS
-    p = (struct memp *)(memp_bases[i]);
-#endif /* MEMP_SEPARATE_POOLS */
+    p = p;
     for (j = 0; j < memp_num[i]; ++j) {
 #if MEMP_SANITY_REGION_BEFORE_ALIGNED > 0
       m = (u8_t*)p + MEMP_SIZE - MEMP_SANITY_REGION_BEFORE_ALIGNED;
@@ -374,7 +354,7 @@ memp_init(void)
   for (i = 0; i < MEMP_MAX; ++i) {
     memp_tab[i] = NULL;
 #if MEMP_SEPARATE_POOLS
-    memp = (struct memp*)LWIP_MEM_ALIGN(memp_bases[i]);
+    memp = (struct memp*)memp_bases[i];
 #endif /* MEMP_SEPARATE_POOLS */
     /* create a linked list of memp elements */
     for (j = 0; j < memp_num[i]; ++j) {
@@ -455,9 +435,6 @@ void
 memp_free(memp_t type, void *mem)
 {
   struct memp *memp;
-#ifdef LWIP_HOOK_MEMP_AVAILABLE
-  struct memp *old_first;
-#endif
   SYS_ARCH_DECL_PROTECT(old_level);
 
   if (mem == NULL) {
@@ -478,12 +455,9 @@ memp_free(memp_t type, void *mem)
 #endif /* MEMP_OVERFLOW_CHECK >= 2 */
 #endif /* MEMP_OVERFLOW_CHECK */
 
-  MEMP_STATS_DEC(used, type);
-
-  memp->next = memp_tab[type];
-#ifdef LWIP_HOOK_MEMP_AVAILABLE
-  old_first = memp_tab[type];
-#endif
+  MEMP_STATS_DEC(used, type); 
+  
+  memp->next = memp_tab[type]; 
   memp_tab[type] = memp;
 
 #if MEMP_SANITY_CHECK
@@ -491,11 +465,6 @@ memp_free(memp_t type, void *mem)
 #endif /* MEMP_SANITY_CHECK */
 
   SYS_ARCH_UNPROTECT(old_level);
-#ifdef LWIP_HOOK_MEMP_AVAILABLE
-  if (old_first == NULL) {
-    LWIP_HOOK_MEMP_AVAILABLE(type);
-  }
-#endif
 }
 
 #endif /* MEMP_MEM_MALLOC */

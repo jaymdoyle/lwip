@@ -92,7 +92,6 @@ lwip_gethostbyname(const char *name)
   HOSTENT_STORAGE char *s_aliases;
   HOSTENT_STORAGE ip_addr_t s_hostent_addr;
   HOSTENT_STORAGE ip_addr_t *s_phostent_addr[2];
-  HOSTENT_STORAGE char s_hostname[DNS_MAX_NAME_LENGTH + 1];
 
   /* query host IP address */
   err = netconn_gethostbyname(name, &addr);
@@ -106,10 +105,7 @@ lwip_gethostbyname(const char *name)
   s_hostent_addr = addr;
   s_phostent_addr[0] = &s_hostent_addr;
   s_phostent_addr[1] = NULL;
-  strncpy(s_hostname, name, DNS_MAX_NAME_LENGTH);
-  s_hostname[DNS_MAX_NAME_LENGTH] = 0;
-  s_hostent.h_name = s_hostname;
-  s_aliases = NULL;
+  s_hostent.h_name = (char*)name;
   s_hostent.h_aliases = &s_aliases;
   s_hostent.h_addrtype = AF_INET;
   s_hostent.h_length = sizeof(ip_addr_t);
@@ -119,15 +115,21 @@ lwip_gethostbyname(const char *name)
   /* dump hostent */
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_name           == %s\n", s_hostent.h_name));
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases        == %p\n", s_hostent.h_aliases));
-  /* h_aliases are always empty */
+  if (s_hostent.h_aliases != NULL) {
+    u8_t idx;
+    for ( idx=0; s_hostent.h_aliases[idx]; idx++) {
+      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases[%i]->   == %p\n", idx, s_hostent.h_aliases[idx]));
+      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases[%i]->   == %s\n", idx, s_hostent.h_aliases[idx]));
+    }
+  }
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addrtype       == %d\n", s_hostent.h_addrtype));
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_length         == %d\n", s_hostent.h_length));
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list      == %p\n", s_hostent.h_addr_list));
   if (s_hostent.h_addr_list != NULL) {
     u8_t idx;
-    for (idx=0; s_hostent.h_addr_list[idx]; idx++) {
+    for ( idx=0; s_hostent.h_addr_list[idx]; idx++) {
       LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]   == %p\n", idx, s_hostent.h_addr_list[idx]));
-      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]-> == %s\n", idx, ipaddr_ntoa((ip_addr_t*)s_hostent.h_addr_list[idx])));
+      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]-> == %s\n", idx, ip_ntoa((ip_addr_t*)s_hostent.h_addr_list[idx])));
     }
   }
 #endif /* DNS_DEBUG */
@@ -260,8 +262,6 @@ lwip_freeaddrinfo(struct addrinfo *ai)
  * @param hints structure containing input values that set socktype and protocol
  * @param res pointer to a pointer where to store the result (set to NULL on failure)
  * @return 0 on success, non-zero on failure
- *
- * @todo: implement AI_V4MAPPED, AI_ADDRCONFIG
  */
 int
 lwip_getaddrinfo(const char *nodename, const char *servname,
@@ -270,11 +270,10 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
   err_t err;
   ip_addr_t addr;
   struct addrinfo *ai;
-  struct sockaddr_storage *sa = NULL;
+  struct sockaddr_in *sa = NULL;
   int port_nr = 0;
   size_t total_size;
   size_t namelen = 0;
-  int ai_family;
 
   if (res == NULL) {
     return EAI_FAIL;
@@ -284,25 +283,9 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
     return EAI_NONAME;
   }
 
-  if (hints != NULL) {
-    ai_family = hints->ai_family;
-    if ((ai_family != AF_UNSPEC) 
-#if LWIP_IPV4
-      && (ai_family != AF_INET)
-#endif /* LWIP_IPV4 */
-#if LWIP_IPV6
-      && (ai_family != AF_INET6)
-#endif /* LWIP_IPV6 */
-      ) {
-      return EAI_FAMILY;
-    }
-  } else {
-    ai_family = AF_UNSPEC;
-  }
-
   if (servname != NULL) {
     /* service name specified: convert to port number
-     * @todo?: currently, only ASCII integers (port numbers) are supported (AI_NUMERICSERV)! */
+     * @todo?: currently, only ASCII integers (port numbers) are supported! */
     port_nr = atoi(servname);
     if ((port_nr <= 0) || (port_nr > 0xffff)) {
       return EAI_SERVICE;
@@ -311,48 +294,18 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
 
   if (nodename != NULL) {
     /* service location specified, try to resolve */
-    if ((hints != NULL) && (hints->ai_flags & AI_NUMERICHOST)) {
-      /* no DNS lookup, just parse for an address string */
-      if(!ipaddr_aton(nodename, &addr)) {
-        return EAI_NONAME;
-      }
-#if LWIP_IPV4 && LWIP_IPV6
-      if ((IP_IS_V6_VAL(addr) && ai_family == AF_INET) ||
-          (!IP_IS_V6_VAL(addr) && ai_family == AF_INET6)) {
-        return EAI_NONAME;
-      }
-#endif /* LWIP_IPV4 && LWIP_IPV6 */
-    } else {
-#if LWIP_IPV4 && LWIP_IPV6
-      /* AF_UNSPEC: prefer IPv4 */
-      u8_t type = NETCONN_DNS_IPV4_IPV6;
-      if (ai_family == AF_INET) {
-        type = NETCONN_DNS_IPV4;
-      } else if(ai_family == AF_INET6) {
-        type = NETCONN_DNS_IPV6;
-      }
-#endif /* LWIP_IPV4 && LWIP_IPV6 */
-      err = netconn_gethostbyname_addrtype(nodename, &addr, type);
-      if (err != ERR_OK) {
-        return EAI_FAIL;
-      }
+    err = netconn_gethostbyname(nodename, &addr);
+    if (err != ERR_OK) {
+      return EAI_FAIL;
     }
   } else {
     /* service location specified, use loopback address */
-    if ((hints != NULL) && (hints->ai_flags & AI_PASSIVE)) {
-      ip_addr_set_any(ai_family == AF_INET6, &addr);
-    } else {
-      ip_addr_set_loopback(ai_family == AF_INET6, &addr);
-    }
+    ip_addr_set_loopback(&addr);
   }
 
   total_size = sizeof(struct addrinfo) + sizeof(struct sockaddr_in);
   if (nodename != NULL) {
     namelen = strlen(nodename);
-    if (namelen > DNS_MAX_NAME_LENGTH) {
-      /* invalid name length */
-      return EAI_FAIL;
-    }
     LWIP_ASSERT("namelen is too long", (namelen + 1) <= (mem_size_t)-1);
     total_size += namelen + 1;
   }
@@ -361,33 +314,18 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
     total_size <= NETDB_ELEM_SIZE);
   ai = (struct addrinfo *)memp_malloc(MEMP_NETDB);
   if (ai == NULL) {
-    return EAI_MEMORY;
+    goto memerr;
   }
   memset(ai, 0, total_size);
-  sa = (struct sockaddr_storage *)(void*)((u8_t*)ai + sizeof(struct addrinfo));
-  if (IP_IS_V6_VAL(addr)) {
-#if LWIP_IPV6
-    struct sockaddr_in6 *sa6 = (struct sockaddr_in6*)sa;
-    /* set up sockaddr */
-    inet6_addr_from_ip6addr(&sa6->sin6_addr, ip_2_ip6(&addr));
-    sa6->sin6_family = AF_INET6;
-    sa6->sin6_len = sizeof(struct sockaddr_in6);
-    sa6->sin6_port = htons((u16_t)port_nr);
-    ai->ai_family = AF_INET6;
-#endif /* LWIP_IPV6 */
-  } else {
-#if LWIP_IPV4
-    struct sockaddr_in *sa4 = (struct sockaddr_in*)sa;
-    /* set up sockaddr */
-    inet_addr_from_ipaddr(&sa4->sin_addr, ip_2_ip4(&addr));
-    sa4->sin_family = AF_INET;
-    sa4->sin_len = sizeof(struct sockaddr_in);
-    sa4->sin_port = htons((u16_t)port_nr);
-    ai->ai_family = AF_INET;
-#endif /* LWIP_IPV4 */
-  }
+  sa = (struct sockaddr_in*)((u8_t*)ai + sizeof(struct addrinfo));
+  /* set up sockaddr */
+  inet_addr_from_ipaddr(&sa->sin_addr, &addr);
+  sa->sin_family = AF_INET;
+  sa->sin_len = sizeof(struct sockaddr_in);
+  sa->sin_port = htons((u16_t)port_nr);
 
   /* set up addrinfo */
+  ai->ai_family = AF_INET;
   if (hints != NULL) {
     /* copy socktype & protocol from hints if specified */
     ai->ai_socktype = hints->ai_socktype;
@@ -405,6 +343,11 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
   *res = ai;
 
   return 0;
+memerr:
+  if (ai != NULL) {
+    memp_free(MEMP_NETDB, ai);
+  }
+  return EAI_MEMORY;
 }
 
 #endif /* LWIP_DNS && LWIP_SOCKET */

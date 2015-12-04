@@ -29,12 +29,12 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef LWIP_HDR_DEBUG_H
-#define LWIP_HDR_DEBUG_H
+#ifndef __LWIP_DEBUG_H__
+#define __LWIP_DEBUG_H__
 
 #include "lwip/arch.h"
-#include "lwip/opt.h"
-
+#include "opt.h"
+#include <stdio.h>
 /** lower two bits indicate debug level
  * - 0 all
  * - 1 warning
@@ -62,47 +62,30 @@
 /** flag for LWIP_DEBUGF to halt after printing this debug message */
 #define LWIP_DBG_HALT          0x08U
 
-/**
- * LWIP_NOASSERT: Disable LWIP_ASSERT checks.
- * -- To disable assertions define LWIP_NOASSERT in arch/cc.h.
- */
 #ifndef LWIP_NOASSERT
 #define LWIP_ASSERT(message, assertion) do { if(!(assertion)) \
   LWIP_PLATFORM_ASSERT(message); } while(0)
-#ifndef LWIP_PLATFORM_ASSERT
-#error "If you want to use LWIP_ASSERT, LWIP_PLATFORM_ASSERT(message) needs to be defined in your arch/cc.h"
-#endif
 #else  /* LWIP_NOASSERT */
 #define LWIP_ASSERT(message, assertion) 
 #endif /* LWIP_NOASSERT */
 
 /** if "expression" isn't true, then print "message" and execute "handler" expression */
 #ifndef LWIP_ERROR
-#ifndef LWIP_NOASSERT
-#define LWIP_PLATFORM_ERROR(message) LWIP_PLATFORM_ASSERT(message)
-#elif defined LWIP_DEBUG
-#define LWIP_PLATFORM_ERROR(message) LWIP_PLATFORM_DIAG((message))
-#else
-#define LWIP_PLATFORM_ERROR(message)
-#endif
-
 #define LWIP_ERROR(message, expression, handler) do { if (!(expression)) { \
-  LWIP_PLATFORM_ERROR(message); handler;}} while(0)
+  LWIP_PLATFORM_ASSERT(message); handler;}} while(0)
 #endif /* LWIP_ERROR */
 
 #ifdef LWIP_DEBUG
-#ifndef LWIP_PLATFORM_DIAG
-#error "If you want to use LWIP_DEBUG, LWIP_PLATFORM_DIAG(message) needs to be defined in your arch/cc.h"
-#endif
 /** print debug message only if debug message type is enabled...
  *  AND is of correct type AND is at least LWIP_DBG_LEVEL
  */
+#define LWIP_PLATFORM_DIAG printf
 #define LWIP_DEBUGF(debug, message) do { \
                                if ( \
                                    ((debug) & LWIP_DBG_ON) && \
                                    ((debug) & LWIP_DBG_TYPES_ON) && \
                                    ((s16_t)((debug) & LWIP_DBG_MASK_LEVEL) >= LWIP_DBG_MIN_LEVEL)) { \
-                                 LWIP_PLATFORM_DIAG(message); \
+                                 LWIP_PLATFORM_DIAG message; \
                                  if ((debug) & LWIP_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -113,5 +96,5 @@
 #define LWIP_DEBUGF(debug, message) 
 #endif /* LWIP_DEBUG */
 
-#endif /* LWIP_HDR_DEBUG_H */
+#endif /* __LWIP_DEBUG_H__ */
 

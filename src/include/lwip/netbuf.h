@@ -29,22 +29,12 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef LWIP_HDR_NETBUF_H
-#define LWIP_HDR_NETBUF_H
-
-#if LWIP_NETCONN || LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
-
-/* don't export the netbuf functions when socket API is enabled but netconn API is disabled */
-#if LWIP_NETCONN
-#define LWIP_NETCONN_SCOPE
-#else /* LWIP_NETCONN */
-#define LWIP_NETCONN_SCOPE static
-#endif /* LWIP_NETCONN */
+#ifndef __LWIP_NETBUF_H__
+#define __LWIP_NETBUF_H__
 
 #include "lwip/opt.h"
 #include "lwip/pbuf.h"
 #include "lwip/ip_addr.h"
-#include "lwip/ip6_addr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,19 +61,19 @@ struct netbuf {
 };
 
 /* Network buffer functions: */
-LWIP_NETCONN_SCOPE struct netbuf *   netbuf_new      (void);
-LWIP_NETCONN_SCOPE void              netbuf_delete   (struct netbuf *buf);
-LWIP_NETCONN_SCOPE void *            netbuf_alloc    (struct netbuf *buf, u16_t size);
-LWIP_NETCONN_SCOPE void              netbuf_free     (struct netbuf *buf);
-LWIP_NETCONN_SCOPE err_t             netbuf_ref      (struct netbuf *buf,
+struct netbuf *   netbuf_new      (void);
+void              netbuf_delete   (struct netbuf *buf);
+void *            netbuf_alloc    (struct netbuf *buf, u16_t size);
+void              netbuf_free     (struct netbuf *buf);
+err_t             netbuf_ref      (struct netbuf *buf,
                                    const void *dataptr, u16_t size);
-LWIP_NETCONN_SCOPE void              netbuf_chain    (struct netbuf *head,
+void              netbuf_chain    (struct netbuf *head,
            struct netbuf *tail);
 
-LWIP_NETCONN_SCOPE err_t             netbuf_data     (struct netbuf *buf,
+err_t             netbuf_data     (struct netbuf *buf,
                                    void **dataptr, u16_t *len);
-LWIP_NETCONN_SCOPE s8_t              netbuf_next     (struct netbuf *buf);
-LWIP_NETCONN_SCOPE void              netbuf_first    (struct netbuf *buf);
+s8_t              netbuf_next     (struct netbuf *buf);
+void              netbuf_first    (struct netbuf *buf);
 
 
 #define netbuf_copy_partial(buf, dataptr, len, offset) \
@@ -92,16 +82,12 @@ LWIP_NETCONN_SCOPE void              netbuf_first    (struct netbuf *buf);
 #define netbuf_take(buf, dataptr, len) pbuf_take((buf)->p, dataptr, len)
 #define netbuf_len(buf)              ((buf)->p->tot_len)
 #define netbuf_fromaddr(buf)         (&((buf)->addr))
-#define netbuf_set_fromaddr(buf, fromaddr) ip_addr_set(&((buf)->addr), fromaddr)
+#define netbuf_set_fromaddr(buf, fromaddr) ip_addr_set((&(buf)->addr), fromaddr)
 #define netbuf_fromport(buf)         ((buf)->port)
 #if LWIP_NETBUF_RECVINFO
 #define netbuf_destaddr(buf)         (&((buf)->toaddr))
-#define netbuf_set_destaddr(buf, destaddr) ip_addr_set(&((buf)->toaddr), destaddr)
-#if LWIP_CHECKSUM_ON_COPY
+#define netbuf_set_destaddr(buf, destaddr) ip_addr_set((&(buf)->addr), destaddr)
 #define netbuf_destport(buf)         (((buf)->flags & NETBUF_FLAG_DESTADDR) ? (buf)->toport_chksum : 0)
-#else /* LWIP_CHECKSUM_ON_COPY */
-#define netbuf_destport(buf)         ((buf)->toport_chksum)
-#endif /* LWIP_CHECKSUM_ON_COPY */
 #endif /* LWIP_NETBUF_RECVINFO */
 #if LWIP_CHECKSUM_ON_COPY
 #define netbuf_set_chksum(buf, chksum) do { (buf)->flags = NETBUF_FLAG_CHKSUM; \
@@ -112,6 +98,4 @@ LWIP_NETCONN_SCOPE void              netbuf_first    (struct netbuf *buf);
 }
 #endif
 
-#endif /* LWIP_NETCONN || LWIP_SOCKET */
-
-#endif /* LWIP_HDR_NETBUF_H */
+#endif /* __LWIP_NETBUF_H__ */
