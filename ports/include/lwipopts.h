@@ -361,6 +361,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_COMPAT_MUTEX               0
 #define LWIP_TIMEVAL_PRIVATE            0
 #define LWIP_PROVIDE_ERRNO              0
+#define LWIP_IPV4                       1
 #endif
 
 
