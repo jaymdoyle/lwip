@@ -293,7 +293,7 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stack_s
 }
 
 
-#ifdef LWIP_COMPAT_MUTEX
+#ifndef LWIP_COMPAT_MUTEX
 err_t
 sys_mutex_new(sys_mutex_t *mutex)
 {
