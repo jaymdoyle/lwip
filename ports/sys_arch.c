@@ -292,9 +292,12 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stack_s
   return id;
 }
 
+
+#ifdef LWIP_COMPAT_MUTEX
 err_t
 sys_mutex_new(sys_mutex_t *mutex)
 {
+
   rtems_status_code ret = rtems_semaphore_create(
     rtems_build_name('L', 'W', 'I', 'P'),
     1,
@@ -309,6 +312,7 @@ sys_mutex_new(sys_mutex_t *mutex)
   }
   return ERR_OK;
 }
+
 /** Lock a mutex
  * @param mutex the mutex to lock */
 void
@@ -330,6 +334,7 @@ sys_mutex_free(sys_mutex_t *mutex)
 {
   rtems_semaphore_delete(mutex->mutex);
 }
+#endif
 
 void
 sys_arch_delay(unsigned int timeout)
