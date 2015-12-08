@@ -210,7 +210,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCPIP_THREAD_PRIO               (100)
 
 // Use proper mutexes
-#define LWIP_COMPAT_MUTEX               1
+#define LWIP_COMPAT_MUTEX               0
 
 // Use timeval struct defined in LWIP instead of RTOS version
 #define LWIP_TIMEVAL_PRIVATE            0
